@@ -1,0 +1,214 @@
+[0.026s] Invoking command in '/home/mo/yahboom_ws/build/yahboom_rosmaster_msgs': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --build /home/mo/yahboom_ws/build/yahboom_rosmaster_msgs -- -j4 -l4
+[0.084s] [35m[1mConsolidate compiler generated dependencies of target yahboom_rosmaster_msgs__rosidl_generator_c[0m
+[0.116s] [  2%] Built target yahboom_rosmaster_msgs__cpp
+[0.135s] [ 12%] Built target yahboom_rosmaster_msgs__rosidl_generator_c
+[0.135s] [ 12%] Built target ament_cmake_python_copy_yahboom_rosmaster_msgs
+[0.145s] [35m[1mConsolidate compiler generated dependencies of target yahboom_rosmaster_msgs__rosidl_typesupport_fastrtps_cpp[0m
+[0.146s] [35m[1mConsolidate compiler generated dependencies of target yahboom_rosmaster_msgs__rosidl_typesupport_cpp[0m
+[0.158s] [35m[1mConsolidate compiler generated dependencies of target yahboom_rosmaster_msgs__rosidl_typesupport_introspection_cpp[0m
+[0.158s] [35m[1mConsolidate compiler generated dependencies of target yahboom_rosmaster_msgs__rosidl_typesupport_fastrtps_c[0m
+[0.167s] [ 23%] Built target yahboom_rosmaster_msgs__rosidl_typesupport_fastrtps_cpp
+[0.172s] [ 33%] Built target yahboom_rosmaster_msgs__rosidl_typesupport_cpp
+[0.187s] [35m[1mConsolidate compiler generated dependencies of target yahboom_rosmaster_msgs__rosidl_typesupport_introspection_c[0m
+[0.191s] [ 43%] Built target yahboom_rosmaster_msgs__rosidl_typesupport_introspection_cpp
+[0.193s] [35m[1mConsolidate compiler generated dependencies of target yahboom_rosmaster_msgs__rosidl_typesupport_c[0m
+[0.197s] [ 53%] Built target yahboom_rosmaster_msgs__rosidl_typesupport_fastrtps_c
+[0.209s] [ 64%] Built target yahboom_rosmaster_msgs__rosidl_typesupport_introspection_c
+[0.226s] [ 74%] Built target yahboom_rosmaster_msgs__rosidl_typesupport_c
+[0.283s] [ 74%] Built target yahboom_rosmaster_msgs
+[0.324s] [ 76%] Built target yahboom_rosmaster_msgs__py
+[0.344s] [35m[1mConsolidate compiler generated dependencies of target yahboom_rosmaster_msgs__rosidl_generator_py[0m
+[0.373s] [ 84%] Built target yahboom_rosmaster_msgs__rosidl_generator_py
+[0.391s] [35m[1mConsolidate compiler generated dependencies of target yahboom_rosmaster_msgs__rosidl_typesupport_introspection_c__pyext[0m
+[0.395s] [35m[1mConsolidate compiler generated dependencies of target yahboom_rosmaster_msgs__rosidl_typesupport_fastrtps_c__pyext[0m
+[0.398s] [35m[1mConsolidate compiler generated dependencies of target yahboom_rosmaster_msgs__rosidl_typesupport_c__pyext[0m
+[0.434s] [ 89%] Built target yahboom_rosmaster_msgs__rosidl_typesupport_introspection_c__pyext
+[0.439s] [ 94%] Built target yahboom_rosmaster_msgs__rosidl_typesupport_fastrtps_c__pyext
+[0.444s] [100%] Built target yahboom_rosmaster_msgs__rosidl_typesupport_c__pyext
+[0.630s] running egg_info
+[0.637s] writing yahboom_rosmaster_msgs.egg-info/PKG-INFO
+[0.637s] writing dependency_links to yahboom_rosmaster_msgs.egg-info/dependency_links.txt
+[0.637s] writing top-level names to yahboom_rosmaster_msgs.egg-info/top_level.txt
+[0.637s] reading manifest file 'yahboom_rosmaster_msgs.egg-info/SOURCES.txt'
+[0.637s] writing manifest file 'yahboom_rosmaster_msgs.egg-info/SOURCES.txt'
+[0.669s] [100%] Built target ament_cmake_python_build_yahboom_rosmaster_msgs_egg
+[0.685s] Invoked command in '/home/mo/yahboom_ws/build/yahboom_rosmaster_msgs' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --build /home/mo/yahboom_ws/build/yahboom_rosmaster_msgs -- -j4 -l4
+[0.687s] Invoking command in '/home/mo/yahboom_ws/build/yahboom_rosmaster_msgs': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --install /home/mo/yahboom_ws/build/yahboom_rosmaster_msgs
+[0.697s] -- Install configuration: ""
+[0.699s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/share/ament_index/resource_index/rosidl_interfaces/yahboom_rosmaster_msgs
+[0.700s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/include/yahboom_rosmaster_msgs/yahboom_rosmaster_msgs
+[0.700s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/include/yahboom_rosmaster_msgs/yahboom_rosmaster_msgs/srv
+[0.700s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/include/yahboom_rosmaster_msgs/yahboom_rosmaster_msgs/srv/detail
+[0.700s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/include/yahboom_rosmaster_msgs/yahboom_rosmaster_msgs/srv/detail/set_cleaning_state__functions.c
+[0.700s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/include/yahboom_rosmaster_msgs/yahboom_rosmaster_msgs/srv/detail/set_cleaning_state__struct.h
+[0.700s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/include/yahboom_rosmaster_msgs/yahboom_rosmaster_msgs/srv/detail/set_cleaning_state__functions.h
+[0.701s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/include/yahboom_rosmaster_msgs/yahboom_rosmaster_msgs/srv/detail/set_cleaning_state__type_support.h
+[0.702s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/include/yahboom_rosmaster_msgs/yahboom_rosmaster_msgs/srv/set_cleaning_state.h
+[0.703s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/include/yahboom_rosmaster_msgs/yahboom_rosmaster_msgs/action
+[0.703s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/include/yahboom_rosmaster_msgs/yahboom_rosmaster_msgs/action/detail
+[0.703s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/include/yahboom_rosmaster_msgs/yahboom_rosmaster_msgs/action/detail/timed_rotation__functions.h
+[0.704s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/include/yahboom_rosmaster_msgs/yahboom_rosmaster_msgs/action/detail/timed_rotation__struct.h
+[0.704s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/include/yahboom_rosmaster_msgs/yahboom_rosmaster_msgs/action/detail/timed_rotation__type_support.h
+[0.704s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/include/yahboom_rosmaster_msgs/yahboom_rosmaster_msgs/action/detail/timed_rotation__functions.c
+[0.704s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/include/yahboom_rosmaster_msgs/yahboom_rosmaster_msgs/action/timed_rotation.h
+[0.704s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/include/yahboom_rosmaster_msgs/yahboom_rosmaster_msgs/msg
+[0.704s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/include/yahboom_rosmaster_msgs/yahboom_rosmaster_msgs/msg/rosidl_generator_c__visibility_control.h
+[0.704s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/share/yahboom_rosmaster_msgs/environment/library_path.sh
+[0.704s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/share/yahboom_rosmaster_msgs/environment/library_path.dsv
+[0.704s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/lib/libyahboom_rosmaster_msgs__rosidl_generator_c.so
+[0.705s] -- Set runtime path of "/home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/lib/libyahboom_rosmaster_msgs__rosidl_generator_c.so" to ""
+[0.705s] -- Up-to-date: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/include/yahboom_rosmaster_msgs/yahboom_rosmaster_msgs
+[0.706s] -- Up-to-date: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/include/yahboom_rosmaster_msgs/yahboom_rosmaster_msgs/srv
+[0.706s] -- Up-to-date: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/include/yahboom_rosmaster_msgs/yahboom_rosmaster_msgs/srv/detail
+[0.706s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/include/yahboom_rosmaster_msgs/yahboom_rosmaster_msgs/srv/detail/set_cleaning_state__rosidl_typesupport_fastrtps_c.h
+[0.706s] -- Up-to-date: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/include/yahboom_rosmaster_msgs/yahboom_rosmaster_msgs/action
+[0.706s] -- Up-to-date: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/include/yahboom_rosmaster_msgs/yahboom_rosmaster_msgs/action/detail
+[0.706s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/include/yahboom_rosmaster_msgs/yahboom_rosmaster_msgs/action/detail/timed_rotation__rosidl_typesupport_fastrtps_c.h
+[0.707s] -- Up-to-date: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/include/yahboom_rosmaster_msgs/yahboom_rosmaster_msgs/msg
+[0.707s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/include/yahboom_rosmaster_msgs/yahboom_rosmaster_msgs/msg/rosidl_typesupport_fastrtps_c__visibility_control.h
+[0.707s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/lib/libyahboom_rosmaster_msgs__rosidl_typesupport_fastrtps_c.so
+[0.707s] -- Set runtime path of "/home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/lib/libyahboom_rosmaster_msgs__rosidl_typesupport_fastrtps_c.so" to ""
+[0.707s] -- Up-to-date: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/include/yahboom_rosmaster_msgs/yahboom_rosmaster_msgs
+[0.707s] -- Up-to-date: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/include/yahboom_rosmaster_msgs/yahboom_rosmaster_msgs/srv
+[0.708s] -- Up-to-date: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/include/yahboom_rosmaster_msgs/yahboom_rosmaster_msgs/srv/detail
+[0.708s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/include/yahboom_rosmaster_msgs/yahboom_rosmaster_msgs/srv/detail/set_cleaning_state__rosidl_typesupport_introspection_c.h
+[0.708s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/include/yahboom_rosmaster_msgs/yahboom_rosmaster_msgs/srv/detail/set_cleaning_state__type_support.c
+[0.708s] -- Up-to-date: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/include/yahboom_rosmaster_msgs/yahboom_rosmaster_msgs/action
+[0.708s] -- Up-to-date: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/include/yahboom_rosmaster_msgs/yahboom_rosmaster_msgs/action/detail
+[0.709s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/include/yahboom_rosmaster_msgs/yahboom_rosmaster_msgs/action/detail/timed_rotation__type_support.c
+[0.709s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/include/yahboom_rosmaster_msgs/yahboom_rosmaster_msgs/action/detail/timed_rotation__rosidl_typesupport_introspection_c.h
+[0.709s] -- Up-to-date: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/include/yahboom_rosmaster_msgs/yahboom_rosmaster_msgs/msg
+[0.709s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/include/yahboom_rosmaster_msgs/yahboom_rosmaster_msgs/msg/rosidl_typesupport_introspection_c__visibility_control.h
+[0.709s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/lib/libyahboom_rosmaster_msgs__rosidl_typesupport_introspection_c.so
+[0.709s] -- Set runtime path of "/home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/lib/libyahboom_rosmaster_msgs__rosidl_typesupport_introspection_c.so" to ""
+[0.710s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/lib/libyahboom_rosmaster_msgs__rosidl_typesupport_c.so
+[0.710s] -- Set runtime path of "/home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/lib/libyahboom_rosmaster_msgs__rosidl_typesupport_c.so" to ""
+[0.710s] -- Up-to-date: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/include/yahboom_rosmaster_msgs/yahboom_rosmaster_msgs
+[0.710s] -- Up-to-date: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/include/yahboom_rosmaster_msgs/yahboom_rosmaster_msgs/srv
+[0.710s] -- Up-to-date: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/include/yahboom_rosmaster_msgs/yahboom_rosmaster_msgs/srv/detail
+[0.710s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/include/yahboom_rosmaster_msgs/yahboom_rosmaster_msgs/srv/detail/set_cleaning_state__builder.hpp
+[0.710s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/include/yahboom_rosmaster_msgs/yahboom_rosmaster_msgs/srv/detail/set_cleaning_state__traits.hpp
+[0.710s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/include/yahboom_rosmaster_msgs/yahboom_rosmaster_msgs/srv/detail/set_cleaning_state__struct.hpp
+[0.710s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/include/yahboom_rosmaster_msgs/yahboom_rosmaster_msgs/srv/detail/set_cleaning_state__type_support.hpp
+[0.710s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/include/yahboom_rosmaster_msgs/yahboom_rosmaster_msgs/srv/set_cleaning_state.hpp
+[0.710s] -- Up-to-date: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/include/yahboom_rosmaster_msgs/yahboom_rosmaster_msgs/action
+[0.710s] -- Up-to-date: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/include/yahboom_rosmaster_msgs/yahboom_rosmaster_msgs/action/detail
+[0.710s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/include/yahboom_rosmaster_msgs/yahboom_rosmaster_msgs/action/detail/timed_rotation__struct.hpp
+[0.710s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/include/yahboom_rosmaster_msgs/yahboom_rosmaster_msgs/action/detail/timed_rotation__traits.hpp
+[0.710s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/include/yahboom_rosmaster_msgs/yahboom_rosmaster_msgs/action/detail/timed_rotation__type_support.hpp
+[0.711s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/include/yahboom_rosmaster_msgs/yahboom_rosmaster_msgs/action/detail/timed_rotation__builder.hpp
+[0.711s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/include/yahboom_rosmaster_msgs/yahboom_rosmaster_msgs/action/timed_rotation.hpp
+[0.711s] -- Up-to-date: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/include/yahboom_rosmaster_msgs/yahboom_rosmaster_msgs/msg
+[0.711s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/include/yahboom_rosmaster_msgs/yahboom_rosmaster_msgs/msg/rosidl_generator_cpp__visibility_control.hpp
+[0.712s] -- Up-to-date: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/include/yahboom_rosmaster_msgs/yahboom_rosmaster_msgs
+[0.712s] -- Up-to-date: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/include/yahboom_rosmaster_msgs/yahboom_rosmaster_msgs/srv
+[0.713s] -- Up-to-date: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/include/yahboom_rosmaster_msgs/yahboom_rosmaster_msgs/srv/detail
+[0.713s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/include/yahboom_rosmaster_msgs/yahboom_rosmaster_msgs/srv/detail/dds_fastrtps
+[0.713s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/include/yahboom_rosmaster_msgs/yahboom_rosmaster_msgs/srv/detail/set_cleaning_state__rosidl_typesupport_fastrtps_cpp.hpp
+[0.713s] -- Up-to-date: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/include/yahboom_rosmaster_msgs/yahboom_rosmaster_msgs/action
+[0.713s] -- Up-to-date: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/include/yahboom_rosmaster_msgs/yahboom_rosmaster_msgs/action/detail
+[0.714s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/include/yahboom_rosmaster_msgs/yahboom_rosmaster_msgs/action/detail/dds_fastrtps
+[0.714s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/include/yahboom_rosmaster_msgs/yahboom_rosmaster_msgs/action/detail/timed_rotation__rosidl_typesupport_fastrtps_cpp.hpp
+[0.714s] -- Up-to-date: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/include/yahboom_rosmaster_msgs/yahboom_rosmaster_msgs/msg
+[0.714s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/include/yahboom_rosmaster_msgs/yahboom_rosmaster_msgs/msg/rosidl_typesupport_fastrtps_cpp__visibility_control.h
+[0.714s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/lib/libyahboom_rosmaster_msgs__rosidl_typesupport_fastrtps_cpp.so
+[0.714s] -- Set runtime path of "/home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/lib/libyahboom_rosmaster_msgs__rosidl_typesupport_fastrtps_cpp.so" to ""
+[0.714s] -- Up-to-date: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/include/yahboom_rosmaster_msgs/yahboom_rosmaster_msgs
+[0.714s] -- Up-to-date: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/include/yahboom_rosmaster_msgs/yahboom_rosmaster_msgs/srv
+[0.714s] -- Up-to-date: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/include/yahboom_rosmaster_msgs/yahboom_rosmaster_msgs/srv/detail
+[0.715s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/include/yahboom_rosmaster_msgs/yahboom_rosmaster_msgs/srv/detail/set_cleaning_state__type_support.cpp
+[0.715s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/include/yahboom_rosmaster_msgs/yahboom_rosmaster_msgs/srv/detail/set_cleaning_state__rosidl_typesupport_introspection_cpp.hpp
+[0.715s] -- Up-to-date: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/include/yahboom_rosmaster_msgs/yahboom_rosmaster_msgs/action
+[0.715s] -- Up-to-date: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/include/yahboom_rosmaster_msgs/yahboom_rosmaster_msgs/action/detail
+[0.715s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/include/yahboom_rosmaster_msgs/yahboom_rosmaster_msgs/action/detail/timed_rotation__rosidl_typesupport_introspection_cpp.hpp
+[0.715s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/include/yahboom_rosmaster_msgs/yahboom_rosmaster_msgs/action/detail/timed_rotation__type_support.cpp
+[0.715s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/lib/libyahboom_rosmaster_msgs__rosidl_typesupport_introspection_cpp.so
+[0.715s] -- Set runtime path of "/home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/lib/libyahboom_rosmaster_msgs__rosidl_typesupport_introspection_cpp.so" to ""
+[0.716s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/lib/libyahboom_rosmaster_msgs__rosidl_typesupport_cpp.so
+[0.716s] -- Set runtime path of "/home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/lib/libyahboom_rosmaster_msgs__rosidl_typesupport_cpp.so" to ""
+[0.716s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/share/yahboom_rosmaster_msgs/environment/pythonpath.sh
+[0.716s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/share/yahboom_rosmaster_msgs/environment/pythonpath.dsv
+[0.716s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/local/lib/python3.10/dist-packages/yahboom_rosmaster_msgs-0.0.0-py3.10.egg-info
+[0.716s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/local/lib/python3.10/dist-packages/yahboom_rosmaster_msgs-0.0.0-py3.10.egg-info/SOURCES.txt
+[0.716s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/local/lib/python3.10/dist-packages/yahboom_rosmaster_msgs-0.0.0-py3.10.egg-info/dependency_links.txt
+[0.716s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/local/lib/python3.10/dist-packages/yahboom_rosmaster_msgs-0.0.0-py3.10.egg-info/PKG-INFO
+[0.716s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/local/lib/python3.10/dist-packages/yahboom_rosmaster_msgs-0.0.0-py3.10.egg-info/top_level.txt
+[0.717s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/local/lib/python3.10/dist-packages/yahboom_rosmaster_msgs
+[0.717s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/local/lib/python3.10/dist-packages/yahboom_rosmaster_msgs/libyahboom_rosmaster_msgs__rosidl_generator_py.so
+[0.718s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/local/lib/python3.10/dist-packages/yahboom_rosmaster_msgs/__init__.py
+[0.718s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/local/lib/python3.10/dist-packages/yahboom_rosmaster_msgs/_yahboom_rosmaster_msgs_s.ep.rosidl_typesupport_c.c
+[0.718s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/local/lib/python3.10/dist-packages/yahboom_rosmaster_msgs/srv
+[0.718s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/local/lib/python3.10/dist-packages/yahboom_rosmaster_msgs/srv/__init__.py
+[0.719s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/local/lib/python3.10/dist-packages/yahboom_rosmaster_msgs/srv/_set_cleaning_state.py
+[0.719s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/local/lib/python3.10/dist-packages/yahboom_rosmaster_msgs/srv/_set_cleaning_state_s.c
+[0.719s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/local/lib/python3.10/dist-packages/yahboom_rosmaster_msgs/action
+[0.719s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/local/lib/python3.10/dist-packages/yahboom_rosmaster_msgs/action/__init__.py
+[0.719s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/local/lib/python3.10/dist-packages/yahboom_rosmaster_msgs/action/_timed_rotation_s.c
+[0.720s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/local/lib/python3.10/dist-packages/yahboom_rosmaster_msgs/action/_timed_rotation.py
+[0.720s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/local/lib/python3.10/dist-packages/yahboom_rosmaster_msgs/yahboom_rosmaster_msgs_s__rosidl_typesupport_fastrtps_c.cpython-310-x86_64-linux-gnu.so
+[0.720s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/local/lib/python3.10/dist-packages/yahboom_rosmaster_msgs/yahboom_rosmaster_msgs_s__rosidl_typesupport_c.cpython-310-x86_64-linux-gnu.so
+[0.720s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/local/lib/python3.10/dist-packages/yahboom_rosmaster_msgs/yahboom_rosmaster_msgs_s__rosidl_typesupport_introspection_c.cpython-310-x86_64-linux-gnu.so
+[0.721s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/local/lib/python3.10/dist-packages/yahboom_rosmaster_msgs/_yahboom_rosmaster_msgs_s.ep.rosidl_typesupport_fastrtps_c.c
+[0.721s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/local/lib/python3.10/dist-packages/yahboom_rosmaster_msgs/_yahboom_rosmaster_msgs_s.ep.rosidl_typesupport_introspection_c.c
+[0.790s] Listing '/home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/local/lib/python3.10/dist-packages/yahboom_rosmaster_msgs'...
+[0.790s] Compiling '/home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/local/lib/python3.10/dist-packages/yahboom_rosmaster_msgs/__init__.py'...
+[0.790s] Listing '/home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/local/lib/python3.10/dist-packages/yahboom_rosmaster_msgs/action'...
+[0.790s] Compiling '/home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/local/lib/python3.10/dist-packages/yahboom_rosmaster_msgs/action/__init__.py'...
+[0.790s] Compiling '/home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/local/lib/python3.10/dist-packages/yahboom_rosmaster_msgs/action/_timed_rotation.py'...
+[0.790s] Listing '/home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/local/lib/python3.10/dist-packages/yahboom_rosmaster_msgs/srv'...
+[0.790s] Compiling '/home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/local/lib/python3.10/dist-packages/yahboom_rosmaster_msgs/srv/__init__.py'...
+[0.790s] Compiling '/home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/local/lib/python3.10/dist-packages/yahboom_rosmaster_msgs/srv/_set_cleaning_state.py'...
+[0.800s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/local/lib/python3.10/dist-packages/yahboom_rosmaster_msgs/yahboom_rosmaster_msgs_s__rosidl_typesupport_fastrtps_c.cpython-310-x86_64-linux-gnu.so
+[0.801s] -- Set runtime path of "/home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/local/lib/python3.10/dist-packages/yahboom_rosmaster_msgs/yahboom_rosmaster_msgs_s__rosidl_typesupport_fastrtps_c.cpython-310-x86_64-linux-gnu.so" to ""
+[0.802s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/local/lib/python3.10/dist-packages/yahboom_rosmaster_msgs/yahboom_rosmaster_msgs_s__rosidl_typesupport_introspection_c.cpython-310-x86_64-linux-gnu.so
+[0.803s] -- Set runtime path of "/home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/local/lib/python3.10/dist-packages/yahboom_rosmaster_msgs/yahboom_rosmaster_msgs_s__rosidl_typesupport_introspection_c.cpython-310-x86_64-linux-gnu.so" to ""
+[0.804s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/local/lib/python3.10/dist-packages/yahboom_rosmaster_msgs/yahboom_rosmaster_msgs_s__rosidl_typesupport_c.cpython-310-x86_64-linux-gnu.so
+[0.805s] -- Set runtime path of "/home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/local/lib/python3.10/dist-packages/yahboom_rosmaster_msgs/yahboom_rosmaster_msgs_s__rosidl_typesupport_c.cpython-310-x86_64-linux-gnu.so" to ""
+[0.805s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/lib/libyahboom_rosmaster_msgs__rosidl_generator_py.so
+[0.806s] -- Set runtime path of "/home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/lib/libyahboom_rosmaster_msgs__rosidl_generator_py.so" to ""
+[0.808s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/share/yahboom_rosmaster_msgs/action/TimedRotation.idl
+[0.808s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/share/yahboom_rosmaster_msgs/srv/SetCleaningState.idl
+[0.808s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/share/yahboom_rosmaster_msgs/action/TimedRotation.action
+[0.808s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/share/yahboom_rosmaster_msgs/srv/SetCleaningState.srv
+[0.809s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/share/yahboom_rosmaster_msgs/srv/SetCleaningState_Request.msg
+[0.809s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/share/yahboom_rosmaster_msgs/srv/SetCleaningState_Response.msg
+[0.809s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/share/ament_index/resource_index/package_run_dependencies/yahboom_rosmaster_msgs
+[0.809s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/share/ament_index/resource_index/parent_prefix_path/yahboom_rosmaster_msgs
+[0.809s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/share/yahboom_rosmaster_msgs/environment/ament_prefix_path.sh
+[0.810s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/share/yahboom_rosmaster_msgs/environment/ament_prefix_path.dsv
+[0.810s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/share/yahboom_rosmaster_msgs/environment/path.sh
+[0.810s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/share/yahboom_rosmaster_msgs/environment/path.dsv
+[0.810s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/share/yahboom_rosmaster_msgs/local_setup.bash
+[0.810s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/share/yahboom_rosmaster_msgs/local_setup.sh
+[0.810s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/share/yahboom_rosmaster_msgs/local_setup.zsh
+[0.810s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/share/yahboom_rosmaster_msgs/local_setup.dsv
+[0.811s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/share/yahboom_rosmaster_msgs/package.dsv
+[0.811s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/share/ament_index/resource_index/packages/yahboom_rosmaster_msgs
+[0.812s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/share/yahboom_rosmaster_msgs/cmake/export_yahboom_rosmaster_msgs__rosidl_generator_cExport.cmake
+[0.813s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/share/yahboom_rosmaster_msgs/cmake/export_yahboom_rosmaster_msgs__rosidl_generator_cExport-noconfig.cmake
+[0.814s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/share/yahboom_rosmaster_msgs/cmake/export_yahboom_rosmaster_msgs__rosidl_typesupport_fastrtps_cExport.cmake
+[0.814s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/share/yahboom_rosmaster_msgs/cmake/export_yahboom_rosmaster_msgs__rosidl_typesupport_fastrtps_cExport-noconfig.cmake
+[0.814s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/share/yahboom_rosmaster_msgs/cmake/yahboom_rosmaster_msgs__rosidl_typesupport_introspection_cExport.cmake
+[0.814s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/share/yahboom_rosmaster_msgs/cmake/yahboom_rosmaster_msgs__rosidl_typesupport_introspection_cExport-noconfig.cmake
+[0.814s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/share/yahboom_rosmaster_msgs/cmake/yahboom_rosmaster_msgs__rosidl_typesupport_cExport.cmake
+[0.817s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/share/yahboom_rosmaster_msgs/cmake/yahboom_rosmaster_msgs__rosidl_typesupport_cExport-noconfig.cmake
+[0.817s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/share/yahboom_rosmaster_msgs/cmake/export_yahboom_rosmaster_msgs__rosidl_generator_cppExport.cmake
+[0.818s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/share/yahboom_rosmaster_msgs/cmake/export_yahboom_rosmaster_msgs__rosidl_typesupport_fastrtps_cppExport.cmake
+[0.818s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/share/yahboom_rosmaster_msgs/cmake/export_yahboom_rosmaster_msgs__rosidl_typesupport_fastrtps_cppExport-noconfig.cmake
+[0.818s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/share/yahboom_rosmaster_msgs/cmake/yahboom_rosmaster_msgs__rosidl_typesupport_introspection_cppExport.cmake
+[0.818s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/share/yahboom_rosmaster_msgs/cmake/yahboom_rosmaster_msgs__rosidl_typesupport_introspection_cppExport-noconfig.cmake
+[0.818s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/share/yahboom_rosmaster_msgs/cmake/yahboom_rosmaster_msgs__rosidl_typesupport_cppExport.cmake
+[0.818s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/share/yahboom_rosmaster_msgs/cmake/yahboom_rosmaster_msgs__rosidl_typesupport_cppExport-noconfig.cmake
+[0.818s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/share/yahboom_rosmaster_msgs/cmake/export_yahboom_rosmaster_msgs__rosidl_generator_pyExport.cmake
+[0.818s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/share/yahboom_rosmaster_msgs/cmake/export_yahboom_rosmaster_msgs__rosidl_generator_pyExport-noconfig.cmake
+[0.818s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/share/yahboom_rosmaster_msgs/cmake/rosidl_cmake-extras.cmake
+[0.824s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/share/yahboom_rosmaster_msgs/cmake/ament_cmake_export_dependencies-extras.cmake
+[0.824s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/share/yahboom_rosmaster_msgs/cmake/ament_cmake_export_include_directories-extras.cmake
+[0.824s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/share/yahboom_rosmaster_msgs/cmake/ament_cmake_export_libraries-extras.cmake
+[0.824s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/share/yahboom_rosmaster_msgs/cmake/ament_cmake_export_targets-extras.cmake
+[0.824s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/share/yahboom_rosmaster_msgs/cmake/rosidl_cmake_export_typesupport_targets-extras.cmake
+[0.824s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/share/yahboom_rosmaster_msgs/cmake/rosidl_cmake_export_typesupport_libraries-extras.cmake
+[0.824s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/share/yahboom_rosmaster_msgs/cmake/yahboom_rosmaster_msgsConfig.cmake
+[0.824s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/share/yahboom_rosmaster_msgs/cmake/yahboom_rosmaster_msgsConfig-version.cmake
+[0.825s] -- Installing: /home/mo/yahboom_ws/install/yahboom_rosmaster_msgs/share/yahboom_rosmaster_msgs/package.xml
+[0.829s] Invoked command in '/home/mo/yahboom_ws/build/yahboom_rosmaster_msgs' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --install /home/mo/yahboom_ws/build/yahboom_rosmaster_msgs

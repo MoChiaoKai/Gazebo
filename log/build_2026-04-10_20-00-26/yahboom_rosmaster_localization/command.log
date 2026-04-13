@@ -1,0 +1,4 @@
+Invoking command in '/home/mo/yahboom_ws/build/yahboom_rosmaster_localization': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --build /home/mo/yahboom_ws/build/yahboom_rosmaster_localization -- -j4 -l4
+Invoked command in '/home/mo/yahboom_ws/build/yahboom_rosmaster_localization' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --build /home/mo/yahboom_ws/build/yahboom_rosmaster_localization -- -j4 -l4
+Invoking command in '/home/mo/yahboom_ws/build/yahboom_rosmaster_localization': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --install /home/mo/yahboom_ws/build/yahboom_rosmaster_localization
+Invoked command in '/home/mo/yahboom_ws/build/yahboom_rosmaster_localization' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --install /home/mo/yahboom_ws/build/yahboom_rosmaster_localization

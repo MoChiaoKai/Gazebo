@@ -1,0 +1,53 @@
+[0.012s] Invoking command in '/home/mo/yahboom_ws/build/yahboom_rosmaster_gazebo': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake /home/mo/yahboom_ws/src/yahboom_rosmaster/yahboom_rosmaster_gazebo -DCMAKE_INSTALL_PREFIX=/home/mo/yahboom_ws/install/yahboom_rosmaster_gazebo
+[0.101s] -- The C compiler identification is GNU 11.4.0
+[0.182s] -- The CXX compiler identification is GNU 11.4.0
+[0.191s] -- Detecting C compiler ABI info
+[0.311s] -- Detecting C compiler ABI info - done
+[0.322s] -- Check for working C compiler: /usr/bin/cc - skipped
+[0.322s] -- Detecting C compile features
+[0.322s] -- Detecting C compile features - done
+[0.328s] -- Detecting CXX compiler ABI info
+[0.499s] -- Detecting CXX compiler ABI info - done
+[0.510s] -- Check for working CXX compiler: /usr/bin/c++ - skipped
+[0.512s] -- Detecting CXX compile features
+[0.512s] -- Detecting CXX compile features - done
+[0.514s] -- Found ament_cmake: 1.3.13 (/opt/ros/humble/share/ament_cmake/cmake)
+[0.728s] -- Found Python3: /usr/bin/python3 (found version "3.10.12") found components: Interpreter 
+[1.051s] -- Found controller_manager: 2.53.1 (/opt/ros/humble/share/controller_manager/cmake)
+[1.737s] -- Found rosidl_generator_c: 3.1.8 (/opt/ros/humble/share/rosidl_generator_c/cmake)
+[1.753s] -- Found rosidl_adapter: 3.1.8 (/opt/ros/humble/share/rosidl_adapter/cmake)
+[1.767s] -- Found rosidl_generator_cpp: 3.1.8 (/opt/ros/humble/share/rosidl_generator_cpp/cmake)
+[1.794s] -- Using all available rosidl_typesupport_c: rosidl_typesupport_fastrtps_c;rosidl_typesupport_introspection_c
+[1.828s] -- Using all available rosidl_typesupport_cpp: rosidl_typesupport_fastrtps_cpp;rosidl_typesupport_introspection_cpp
+[4.810s] -- Found rmw_implementation_cmake: 6.1.2 (/opt/ros/humble/share/rmw_implementation_cmake/cmake)
+[4.814s] -- Found rmw_fastrtps_cpp: 6.2.10 (/opt/ros/humble/share/rmw_fastrtps_cpp/cmake)
+[4.851s] -- Found TinyXML2 via Config file: TinyXML2_DIR-NOTFOUND
+[4.947s] -- Found OpenSSL: /usr/lib/x86_64-linux-gnu/libcrypto.so (found version "3.0.2")  
+[4.950s] -- Found TinyXML2 via Config file: TinyXML2_DIR-NOTFOUND
+[4.976s] -- Found FastRTPS: /opt/ros/humble/include  
+[4.981s] -- Found TinyXML2 via Config file: TinyXML2_DIR-NOTFOUND
+[4.994s] -- Found TinyXML2 via Config file: TinyXML2_DIR-NOTFOUND
+[5.019s] -- Using RMW implementation 'rmw_fastrtps_cpp' as default
+[5.049s] -- Looking for pthread.h
+[5.902s] -- Looking for pthread.h - found
+[5.902s] -- Performing Test CMAKE_HAVE_LIBC_PTHREAD
+[6.155s] -- Performing Test CMAKE_HAVE_LIBC_PTHREAD - Success
+[6.157s] -- Found Threads: TRUE  
+[7.349s] -- Found gz_ros2_control: 0.7.18 (/opt/ros/humble/share/gz_ros2_control/cmake)
+[7.654s] -- Found ros_gz: 0.244.22 (/opt/ros/humble/share/ros_gz/cmake)
+[7.671s] -- Found ros_gz_bridge: 0.244.22 (/opt/ros/humble/share/ros_gz_bridge/cmake)
+[9.957s] -- Found Protobuf: /usr/lib/x86_64-linux-gnu/libprotobuf.so (found suitable version "3.12.4", minimum required is "3") 
+[10.374s] -- Found Protobuf: /usr/lib/x86_64-linux-gnu/libprotobuf.so (found version "3.12.4") 
+[13.241s] -- Found ros_gz_image: 0.244.22 (/opt/ros/humble/share/ros_gz_image/cmake)
+[13.371s] -- Found ros_gz_sim: 0.244.22 (/opt/ros/humble/share/ros_gz_sim/cmake)
+[13.722s] -- Found ros2_control: 2.53.1 (/opt/ros/humble/share/ros2_control/cmake)
+[13.830s] -- Found ros2_controllers: 2.52.1 (/opt/ros/humble/share/ros2_controllers/cmake)
+[13.901s] -- Found xacro: 2.1.1 (/opt/ros/humble/share/xacro/cmake)
+[13.928s] -- Found ament_lint_auto: 0.12.15 (/opt/ros/humble/share/ament_lint_auto/cmake)
+[14.180s] -- Added test 'flake8' to check Python code syntax and style conventions
+[14.202s] -- Added test 'lint_cmake' to check CMake code style
+[14.212s] -- Added test 'pep257' to check Python code against some of the docstring style conventions in PEP 257
+[14.304s] -- Added test 'xmllint' to check XML markup files
+[14.307s] -- Configuring done
+[14.318s] -- Generating done
+[14.342s] -- Build files have been written to: /home/mo/yahboom_ws/build/yahboom_rosmaster_gazebo

@@ -1,0 +1,24 @@
+<?xml version="1.0" ?>
+<robot xmlns:xacro="http://wiki.ros.org/xacro">
+    <xacro:macro name="load_gazebo_sim_ros2_control_plugin" params="robot_name use_gazebo use_namespace">
+        <xacro:if value="${use_gazebo}">
+            <gazebo>
+                <plugin filename="gz_ros2_control-system" name="gz_ros2_control::GazeboSimROS2ControlPlugin">
+                    <xacro:if value="${use_namespace}">
+                        <parameters>$(find yahboom_rosmaster_description)/config/${robot_name}/my_ros2_controllers.yaml</parameters>
+                        <ros>
+                            <namespace>/${robot_name}</namespace>
+                            <remapping>robot_description:=/${robot_name}/robot_description</remapping>
+                        </ros>
+                    </xacro:if>
+                    <xacro:unless value="${use_namespace}">
+                        <parameters>$(find yahboom_rosmaster_description)/config/rosmaster_x3/my_ros2_controllers.yaml</parameters>
+                        <ros>
+                            <remapping>robot_description:=/robot_description</remapping>
+                        </ros>
+                    </xacro:unless>
+                </plugin>
+            </gazebo>
+        </xacro:if>
+    </xacro:macro>
+</robot>

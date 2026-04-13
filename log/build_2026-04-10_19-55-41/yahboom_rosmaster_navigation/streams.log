@@ -1,0 +1,84 @@
+[0.018s] Invoking command in '/home/mo/yahboom_ws/build/yahboom_rosmaster_navigation': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake /home/mo/yahboom_ws/src/yahboom_rosmaster/yahboom_rosmaster_navigation -DCMAKE_INSTALL_PREFIX=/home/mo/yahboom_ws/install/yahboom_rosmaster_navigation
+[0.111s] -- The C compiler identification is GNU 11.4.0
+[0.220s] -- The CXX compiler identification is GNU 11.4.0
+[0.232s] -- Detecting C compiler ABI info
+[0.356s] -- Detecting C compiler ABI info - done
+[0.386s] -- Check for working C compiler: /usr/bin/cc - skipped
+[0.388s] -- Detecting C compile features
+[0.389s] -- Detecting C compile features - done
+[0.397s] -- Detecting CXX compiler ABI info
+[0.523s] -- Detecting CXX compiler ABI info - done
+[0.533s] -- Check for working CXX compiler: /usr/bin/c++ - skipped
+[0.534s] -- Detecting CXX compile features
+[0.535s] -- Detecting CXX compile features - done
+[0.539s] -- Found ament_cmake: 1.3.13 (/opt/ros/humble/share/ament_cmake/cmake)
+[0.769s] -- Found Python3: /usr/bin/python3 (found version "3.10.12") found components: Interpreter 
+[0.911s] -- Found geometry_msgs: 4.9.1 (/opt/ros/humble/share/geometry_msgs/cmake)
+[0.966s] -- Found rosidl_generator_c: 3.1.8 (/opt/ros/humble/share/rosidl_generator_c/cmake)
+[0.973s] -- Found rosidl_adapter: 3.1.8 (/opt/ros/humble/share/rosidl_adapter/cmake)
+[0.986s] -- Found rosidl_generator_cpp: 3.1.8 (/opt/ros/humble/share/rosidl_generator_cpp/cmake)
+[1.004s] -- Using all available rosidl_typesupport_c: rosidl_typesupport_fastrtps_c;rosidl_typesupport_introspection_c
+[1.034s] -- Using all available rosidl_typesupport_cpp: rosidl_typesupport_fastrtps_cpp;rosidl_typesupport_introspection_cpp
+[1.185s] -- Found navigation2: 1.1.20 (/opt/ros/humble/share/navigation2/cmake)
+[1.279s] -- Found nav2_bringup: 1.1.20 (/opt/ros/humble/share/nav2_bringup/cmake)
+[1.279s] -- Found rclcpp: 16.0.18 (/opt/ros/humble/share/rclcpp/cmake)
+[1.354s] -- Found rmw_implementation_cmake: 6.1.2 (/opt/ros/humble/share/rmw_implementation_cmake/cmake)
+[1.357s] -- Found rmw_fastrtps_cpp: 6.2.10 (/opt/ros/humble/share/rmw_fastrtps_cpp/cmake)
+[1.515s] -- Found OpenSSL: /usr/lib/x86_64-linux-gnu/libcrypto.so (found version "3.0.2")  
+[1.573s] -- Found FastRTPS: /opt/ros/humble/include  
+[1.640s] -- Using RMW implementation 'rmw_fastrtps_cpp' as default
+[1.652s] -- Looking for pthread.h
+[2.239s] -- Looking for pthread.h - found
+[2.242s] -- Performing Test CMAKE_HAVE_LIBC_PTHREAD
+[2.499s] -- Performing Test CMAKE_HAVE_LIBC_PTHREAD - Success
+[2.501s] -- Found Threads: TRUE  
+[2.908s] -- Found rclpy: 3.3.20 (/opt/ros/humble/share/rclpy/cmake)
+[3.030s] -- Found slam_toolbox: 2.6.10 (/opt/ros/humble/share/slam_toolbox/cmake)
+[6.309s] -- Found eigen3_cmake_module: 0.1.1 (/opt/ros/humble/share/eigen3_cmake_module/cmake)
+[6.363s] -- Found Eigen3: TRUE (found version "3.4.0") 
+[6.363s] -- Ensuring Eigen3 include directory is part of orocos-kdl CMake target
+[8.368s] -- Setting assimp_DIR to: '/opt/ros/humble/share/rviz_assimp_vendor/cmake/../../../opt/rviz_assimp_vendor/lib/cmake/assimp-4.1'
+[8.679s] -- Setting OGRE_DIR to: '/opt/ros/humble/share/rviz_ogre_vendor/cmake/../../../opt/rviz_ogre_vendor/lib/OGRE/cmake'
+[8.757s] -- Found OGRE
+[8.758s] --   static     : OFF
+[8.758s] --   components : HLMS;MeshLodGenerator;Overlay;Paging;Property;RTShaderSystem;Terrain;Volume
+[8.758s] --   plugins    : Plugin_BSPSceneManager;Plugin_OctreeSceneManager;Plugin_PCZSceneManager;Plugin_ParticleFX;RenderSystem_GL;RenderSystem_GL3Plus;Codec_STBI
+[8.758s] --   media      : /opt/ros/humble/opt/rviz_ogre_vendor/share/OGRE/Media
+[8.758s] -- OGRE_LIBRARIES: OgreHLMS;OgreMeshLodGenerator;OgreOverlay;OgrePaging;OgreProperty;OgreRTShaderSystem;OgreTerrain;OgreVolume;OgreMain
+[8.758s] -- OGRE_LIBRARY_DIRS: /opt/ros/humble/opt/rviz_ogre_vendor/lib
+[8.758s] -- OGRE_PLUGINS: Plugin_BSPSceneManager;Plugin_OctreeSceneManager;Plugin_PCZSceneManager;Plugin_ParticleFX;RenderSystem_GL;RenderSystem_GL3Plus;Codec_STBI
+[8.758s] -- OGRE_PLUGIN_DIR: /opt/ros/humble/opt/rviz_ogre_vendor/lib/OGRE
+[8.769s] -- rviz_ogre_vendor::OgreOverlay for IMPORTED_LOCATION_RELEASE: /opt/ros/humble/opt/rviz_ogre_vendor/lib/libOgreOverlay.so
+[8.769s] -- rviz_ogre_vendor::OgreOverlay for IMPORTED_LOCATION_DEBUG: /opt/ros/humble/opt/rviz_ogre_vendor/lib/libOgreOverlay.so
+[8.769s] -- rviz_ogre_vendor::OgreMain for IMPORTED_LOCATION_RELEASE: /opt/ros/humble/opt/rviz_ogre_vendor/lib/libOgreMain.so
+[8.769s] -- rviz_ogre_vendor::OgreMain for IMPORTED_LOCATION_DEBUG: /opt/ros/humble/opt/rviz_ogre_vendor/lib/libOgreMain.so
+[8.772s] -- Could not find freeimage library
+[9.016s] -- Found ZLIB: /usr/lib/x86_64-linux-gnu/libz.so (found version "1.2.11") 
+[9.104s] -- Found OpenGL: /usr/lib/x86_64-linux-gnu/libOpenGL.so   
+[9.800s] -- Found X11: /usr/include   
+[9.831s] -- Looking for XOpenDisplay in /usr/lib/x86_64-linux-gnu/libX11.so;/usr/lib/x86_64-linux-gnu/libXext.so
+[10.392s] -- Looking for XOpenDisplay in /usr/lib/x86_64-linux-gnu/libX11.so;/usr/lib/x86_64-linux-gnu/libXext.so - found
+[10.393s] -- Looking for gethostbyname
+[10.540s] -- Looking for gethostbyname - found
+[10.540s] -- Looking for connect
+[10.880s] -- Looking for connect - found
+[10.880s] -- Looking for remove
+[11.064s] -- Looking for remove - found
+[11.064s] -- Looking for shmat
+[11.255s] -- Looking for shmat - found
+[11.255s] -- Looking for IceConnectionNumber in ICE
+[11.395s] -- Looking for IceConnectionNumber in ICE - found
+[11.836s] -- library: /usr/lib/x86_64-linux-gnu/libcurl.so
+[13.568s] -- Found ament_lint_auto: 0.12.15 (/opt/ros/humble/share/ament_lint_auto/cmake)
+[13.699s] -- Added test 'cppcheck' to perform static code analysis on C / C++ code
+[13.699s] -- Configured cppcheck include dirs: 
+[13.699s] -- Configured cppcheck exclude dirs and/or files: 
+[13.701s] -- Added test 'flake8' to check Python code syntax and style conventions
+[13.702s] -- Added test 'lint_cmake' to check CMake code style
+[13.703s] -- Added test 'pep257' to check Python code against some of the docstring style conventions in PEP 257
+[13.706s] -- Added test 'uncrustify' to check C / C++ code style
+[13.706s] -- Configured uncrustify additional arguments: 
+[13.707s] -- Added test 'xmllint' to check XML markup files
+[13.711s] -- Configuring done
+[13.732s] -- Generating done
+[13.741s] -- Build files have been written to: /home/mo/yahboom_ws/build/yahboom_rosmaster_navigation
