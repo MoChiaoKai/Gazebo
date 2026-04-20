@@ -145,13 +145,13 @@ controller_server:
       ax_min: -0.35
       ay_max: 0.10
       az_max: 0.90
-      vx_std: 0.06
-      vy_std: 0.02
-      wz_std: 0.12
-      vx_max: 0.16 # Keep movement visible while reducing overshoot and oscillation
+      vx_std: 1
+      vy_std: 1
+      wz_std: 1
+      vx_max: 1 # Keep movement visible while reducing overshoot and oscillation
       vx_min: 0.0 # -0.35 is default
-      vy_max: 0.04
-      wz_max: 0.50
+      vy_max: 1
+      wz_max: 1
       iteration_count: 1
       prune_distance: 1.7
       transform_tolerance: 0.35
@@ -421,10 +421,10 @@ velocity_smoother:
     smoothing_frequency: 20.0
     scale_velocities: False
     feedback: "OPEN_LOOP"
-    max_velocity: [0.16, 0.04, 0.50]
-    min_velocity: [-0.16, -0.04, -0.50]
-    max_accel: [0.35, 0.10, 0.9]
-    max_decel: [-0.40, -0.12, -1.0]
+    max_velocity: [0.20, 0.06, 0.60]
+    min_velocity: [-0.20, -0.06, -0.60]
+    max_accel: [0.45, 0.14, 1.1]
+    max_decel: [-0.50, -0.16, -1.2]
     odom_topic: "odometry/filtered"
     odom_duration: 0.1
     deadband_velocity: [0.0, 0.0, 0.0]

@@ -55,7 +55,17 @@
           <geometry><plane><normal>0 0 1</normal><size>6 5.6</size></plane></geometry>
           <material><ambient>0.41 0.29 0.20 1.0</ambient><diffuse>0.41 0.29 0.20 1.0</diffuse></material>
         </visual>
-        <collision name="collision"><geometry><plane><normal>0 0 1</normal><size>6 5.6</size></plane></geometry></collision>
+        <collision name="collision">
+          <geometry><plane><normal>0 0 1</normal><size>6 5.6</size></plane></geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>1.0</mu>
+                <mu2>1.0</mu2>
+              </ode>
+            </friction>
+          </surface>
+        </collision>
       </link>
     </model>
 
