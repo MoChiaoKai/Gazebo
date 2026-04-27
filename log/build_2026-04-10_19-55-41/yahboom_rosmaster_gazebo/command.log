@@ -1,1 +1,0 @@
-Invoking command in '/home/mo/yahboom_ws/build/yahboom_rosmaster_gazebo': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake /home/mo/yahboom_ws/src/yahboom_rosmaster/yahboom_rosmaster_gazebo -DCMAKE_INSTALL_PREFIX=/home/mo/yahboom_ws/install/yahboom_rosmaster_gazebo

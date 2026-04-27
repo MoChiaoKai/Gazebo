@@ -14,6 +14,12 @@
   	<background>0.8 0.8 0.8 1</background>
    </scene>
 
+   <physics type="ode">
+    <real_time_update_rate>1000</real_time_update_rate>
+    <max_step_size>0.001</max_step_size>
+    <real_time_factor>0.8</real_time_factor>
+  </physics>
+
     <gui fullscreen="0">
       <plugin name="3D View" filename="GzScene3D">
         <background_color>0.8 0.8 0.8 1</background_color>

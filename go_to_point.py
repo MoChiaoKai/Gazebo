@@ -276,6 +276,7 @@ class GoToPointNode(Node):
         self.target_y = target_y
         self.fixed_world_waypoints = fixed_world_waypoints[:] if fixed_world_waypoints else []
         self.target_yaw = None if target_yaw_deg is None else math.radians(target_yaw_deg)
+        self.target_world_yaw = self.target_yaw
 
         self.pos_tol = abs(pos_tol)
         self.yaw_tol = math.radians(abs(yaw_tol_deg))
@@ -328,18 +329,18 @@ class GoToPointNode(Node):
         self.turn_kd = 0.90
         self.turn_min_angular = 0.03
         self.turn_min_apply_err_rad = math.radians(12.0)
-        self.turn_cmd_slew_rate = 0.70
-        self.turn_brake_decel_est = 0.24
+        self.turn_cmd_slew_rate = 1.50
+        self.turn_brake_decel_est = 0.80
         self.turn_180_comp_rad = math.radians(30.0)
         self.turn_brake_margin_rad = math.radians(2.2)
         self.turn_brake_min_rate = 0.03
-        self.turn_brake_gain = 1.20
+        self.turn_brake_gain = 1.80
         self.rotate_relax_tol_rad = math.radians(5.0)
         self.rotate_relax_rate_rad = 0.06
-        self.rotate_relax_hold_sec = 0.60
+        self.rotate_relax_hold_sec = 0.25
         # Smooth forward motion: ramp speed changes and avoid unnecessary stop-go on collinear nodes.
-        self.linear_cmd_slew_rate = 0.80
-        self.linear_cmd_slew_rate_decel = 1.10
+        self.linear_cmd_slew_rate = 1.50
+        self.linear_cmd_slew_rate_decel = 20.00
         # Keep speed uniform on straight segments by chaining collinear nodes.
         # The robot will still stop/rotate at true corners or when safety hold triggers.
         self.force_stop_each_node = False
@@ -361,6 +362,8 @@ class GoToPointNode(Node):
         self.progress_keepout_margin = 0.02
         self.progress_done_tol = max(0.12, self.pos_tol * 1.4)
         self.progress_replan_margin = 0.10
+        self.final_pose_realign_tol = max(0.15, self.pos_tol * 3.0)
+        self.final_pose_realign_cooldown_sec = 0.8
         self.near_goal_turn_relax_dist = 0.45
         self.near_goal_face_tol_rad = math.radians(3.0)
         self.near_goal_forward_realign_rad = math.radians(3.8)
@@ -380,8 +383,10 @@ class GoToPointNode(Node):
         self.fixed_path_edge_margin = 0.0
         self._fixed_path_clamp_logged = False
         # Backup dynamic peer safety: emergency-only short-range brake.
-        self.peer_emergency_stop_dist = 0.16
-        self.peer_critical_stop_dist = 0.08
+        self.peer_emergency_stop_dist = 0.25
+        self.peer_critical_stop_dist = 0.15
+        self.peer_emergency_stop_dist = 0.55
+        self.peer_critical_stop_dist = 0.40
 
         self.current_x = 0.0
         self.current_y = 0.0
@@ -448,10 +453,12 @@ class GoToPointNode(Node):
         self._forward_stall_ref_x = None
         self._forward_stall_ref_y = None
         self._last_forward_stall_replan = 0.0
+        self._last_final_pose_realign = 0.0
         self.peer_hold_active = False
         self.peer_hold_leader = 0
         self.peer_hold_dist = float('inf')
         self._peer_last_log = 0.0
+        self.task_start_time = time.time()
 
         cmd_topic = f'/rosmaster_x3_{robot_id}/cmd_vel'
         odom_topic = f'/rosmaster_x3_{robot_id}/mecanum_drive_controller/odom'
@@ -472,7 +479,7 @@ class GoToPointNode(Node):
         odom_topic: str,
     ):
         yaw_text = 'none' if target_yaw_deg is None else f'{target_yaw_deg:.1f} deg'
-        self.get_logger().info(
+        self.get_logger().debug(
             f'start: robot={robot_id}, frame={frame_name}, target=({target_x:.3f}, {target_y:.3f}), '
             f'target_yaw={yaw_text}, cmd_topic={cmd_topic}, odom_topic={odom_topic}'
         )
@@ -504,7 +511,7 @@ class GoToPointNode(Node):
             self._rebuild_node_path()
 
         if announce:
-            self.get_logger().info(
+            self.get_logger().debug(
                 f'odom target: ({self.target_x:.3f}, {self.target_y:.3f}), '
                 f"yaw={'none' if self.target_yaw is None else f'{math.degrees(self.target_yaw):.1f} deg'}"
             )
@@ -562,7 +569,7 @@ class GoToPointNode(Node):
         self.map_ready = True
 
         if not was_ready:
-            self.get_logger().info(
+            self.get_logger().debug(
                 f'map ready: topic={source_label}, size={width}x{height}, res={resolution:.3f} m, '
                 f'inflation={self.map_inflate_radius_m:.2f} m'
             )
@@ -672,7 +679,7 @@ class GoToPointNode(Node):
             base_blocked,
             f'world:{os.path.basename(world_path)}',
         )
-        self.get_logger().info(
+        self.get_logger().debug(
             f'loaded world occupancy: file={world_path}, x_range=[{world_min:.1f}, {world_max:.1f}], '
             f'y_range=[{world_min:.1f}, {world_max:.1f}], blocked_nodes={marked_count}, '
             f'obstacle_points={obstacle_points}'
@@ -749,7 +756,81 @@ class GoToPointNode(Node):
                 world_path.append(self._map_cell_to_world(mx, my))
         goal_reachable_world = self._map_cell_to_world(goal_free[0], goal_free[1])
         world_path.append(goal_reachable_world)
+        
         return world_path
+
+    def _check_line_of_sight(self, p1: tuple[float, float], p2: tuple[float, float]) -> bool:
+        if not self.map_ready or self.map_resolution <= 0.0:
+            return False
+            
+        dx = p2[0] - p1[0]
+        dy = p2[1] - p1[1]
+        dist = math.hypot(dx, dy)
+        if dist <= 1e-6:
+            return True
+            
+        step_dist = self.map_resolution * 0.25
+        steps = int(math.ceil(dist / step_dist))
+        
+        for i in range(steps + 1):
+            t = i / steps
+            wx = p1[0] + dx * t
+            wy = p1[1] + dy * t
+            
+            cell = self._world_to_map_cell(wx, wy)
+            if cell is None:
+                return False
+            mx, my = cell
+            if self.map_blocked[my * self.map_width + mx]:
+                return False
+                
+        return True
+
+    def _smooth_world_path(self, path: list[tuple[float, float]]) -> list[tuple[float, float]]:
+        if len(path) <= 2:
+            return path
+        
+        smoothed = [path[0]]
+        cur_idx = 0
+        while cur_idx < len(path) - 1:
+            next_idx = cur_idx + 1
+            for i in range(len(path) - 1, cur_idx + 1, -1):
+                if self._check_line_of_sight(path[cur_idx], path[i]):
+                    next_idx = i
+                    break
+            smoothed.append(path[next_idx])
+            cur_idx = next_idx
+            
+        return smoothed
+
+    def _compress_world_path(self, points: list[tuple[float, float]]) -> list[tuple[float, float]]:
+        if len(points) <= 2:
+            return points
+        compressed = [points[0]]
+        prev_dx = points[1][0] - points[0][0]
+        prev_dy = points[1][1] - points[0][1]
+        prev_len = math.hypot(prev_dx, prev_dy)
+        prev_ux = prev_dx / prev_len if prev_len > 1e-6 else 0.0
+        prev_uy = prev_dy / prev_len if prev_len > 1e-6 else 0.0
+
+        for i in range(1, len(points) - 1):
+            cur = points[i]
+            nxt = points[i+1]
+            dx = nxt[0] - cur[0]
+            dy = nxt[1] - cur[1]
+            dlen = math.hypot(dx, dy)
+            if dlen <= 1e-6:
+                continue
+            ux = dx / dlen
+            uy = dy / dlen
+            
+            # 如果方向沒有改變(內積接近1)，代表在同一條直線上，可以略過該點
+            if (prev_ux * ux + prev_uy * uy) < 0.99:
+                compressed.append(cur)
+                prev_ux = ux
+                prev_uy = uy
+        compressed.append(points[-1])
+        return compressed
 
     def _build_fixed_world_path(
         self,
@@ -804,6 +885,9 @@ class GoToPointNode(Node):
         world_path.extend(points[start_idx:])
         if len(world_path) <= 1:
             world_path.append((goal_cx, goal_cy))
+
+        # 壓縮收到的密集座標點，消除直線上多餘的中繼點，避免走走停停
+        world_path = self._compress_world_path(world_path)
 
         if clamped_count > 0 and (not self._fixed_path_clamp_logged):
             self.get_logger().warn(
@@ -873,6 +957,7 @@ class GoToPointNode(Node):
         self.active_node_idx = 0
         self.drive_phase = 'rotate_to_node'
         self.path_failed = False
+        self._yaw_in_tol_since = None
         self.turn_target_yaw = None
         self.turn_mid_yaw = None
         self._turn_in_tol_since = None
@@ -882,7 +967,7 @@ class GoToPointNode(Node):
         self.turn_budget_prev_yaw = heading_now
         self.prev_turn_cmd_wz = 0.0
         path_label = 'coordinator path loaded' if using_fixed_path else 'global path planned'
-        self.get_logger().info(
+        self.get_logger().debug(
             f'{path_label}: waypoints={len(self.path_nodes)}, map={self.map_width}x{self.map_height}, '
             f'res={self.map_resolution:.3f} m, topic={self._map_topic}'
         )
@@ -925,6 +1010,13 @@ class GoToPointNode(Node):
             and self._progress_goal_y is not None
         )
 
+    def final_world_yaw_active(self) -> bool:
+        return (
+            self.target_world_yaw is not None
+            and self.using_world_control()
+            and (not self.path_nodes or self.active_node_idx >= len(self.path_nodes))
+        )
+
     def update_peer_safety(self, world_poses: dict[str, tuple[float, float, float]], now: float):
         self_key = f'rosmaster_x3_{self.robot_id}'
         self_pose = world_poses.get(self_key)
@@ -947,9 +1039,35 @@ class GoToPointNode(Node):
         should_hold = False
         hold_leader = 0
         if nearest_peer > 0:
-            if nearest_dist <= self.peer_emergency_stop_dist and (
-                self.robot_id > nearest_peer or nearest_dist <= self.peer_critical_stop_dist
-            ):
+            peer_pose = world_poses.get(f'rosmaster_x3_{nearest_peer}')
+            
+            # 動態防撞距離：判斷自己或對方是否在 Station/Supply 區域 (例如 x >= 1.2 或 x <= -1.2)
+            # 如果在站點區域，放大防撞距離預留原地旋轉與掃尾空間
+            in_station_zone = abs(self_pose[0]) >= 1.2 or abs(peer_pose[0]) >= 1.2
+            
+            if in_station_zone:
+                active_emergency = 0.65
+                active_critical = 0.50
+            else:
+                # 行駛途中，使用較短的預設距離
+                active_emergency = self.peer_emergency_stop_dist
+                active_critical = self.peer_critical_stop_dist
+                    
+            # 判斷雙方的 X 座標深度 (誰比較靠近站點內部)
+            self_depth = abs(self_pose[0])
+            peer_depth = abs(peer_pose[0])
+            
+            # 若深度差異大於 0.15m，代表有一方在站點內(或準備離開)，另一方在外面排隊
+            # 此時在深處的車擁有絕對優先權，不需要禮讓，以確保它能順利駛出站點
+            if self_depth > peer_depth + 0.15:
+                i_must_yield = False
+            elif peer_depth > self_depth + 0.15:
+                i_must_yield = True
+            else:
+                # 深度相近 (例如都在走道上會車)，使用 ID 決定優先權避免死鎖
+                i_must_yield = self.robot_id > nearest_peer
+
+            if nearest_dist <= active_emergency and i_must_yield:
                 should_hold = True
                 hold_leader = nearest_peer
 
@@ -960,7 +1078,7 @@ class GoToPointNode(Node):
             return
 
         if self.peer_hold_active and now - self._peer_last_log >= 1.5:
-            self.get_logger().info(
+            self.get_logger().debug(
                 f'peer-hold released: leader=robot{self.peer_hold_leader}, dist={self.peer_hold_dist:.2f} m'
             )
             self._peer_last_log = now
@@ -1102,22 +1220,24 @@ class GoToPointNode(Node):
         cross_track_error = 0.0
         heading_err_deg = 0.0
         control_in_world = self.using_world_control()
+        final_world_yaw_active = self.final_world_yaw_active()
         cur_x_now = self._world_x if control_in_world else self.current_x
         cur_y_now = self._world_y if control_in_world else self.current_y
         if control_in_world:
-            # Use odom-derived world heading for control to avoid world/odom yaw
-            # source switching near threshold, which can cause forward-phase
-            # oscillation and repeated near-node stalls.
             world_heading_from_odom = normalize_angle(self.current_yaw + self._world_from_odom_yaw)
-            heading_mismatch = abs(normalize_angle(self._world_yaw - world_heading_from_odom))
-            if heading_mismatch > self.world_heading_use_limit_rad:
-                if loop_now - self._last_world_heading_fallback_log >= 2.0:
-                    self.get_logger().warn(
-                        f'world heading fallback: mismatch={math.degrees(heading_mismatch):.1f} deg, '
-                        f'using odom-derived heading'
-                    )
-                    self._last_world_heading_fallback_log = loop_now
             cur_heading_now = world_heading_from_odom
+            if not final_world_yaw_active:
+                # Use odom-derived world heading for control to avoid world/odom yaw
+                # source switching near threshold, which can cause forward-phase
+                # oscillation and repeated near-node stalls.
+                heading_mismatch = abs(normalize_angle(self._world_yaw - world_heading_from_odom))
+                if heading_mismatch > self.world_heading_use_limit_rad:
+                    if loop_now - self._last_world_heading_fallback_log >= 2.0:
+                        self.get_logger().warn(
+                            f'world heading fallback: mismatch={math.degrees(heading_mismatch):.1f} deg, '
+                            f'using odom-derived heading'
+                        )
+                        self._last_world_heading_fallback_log = loop_now
         else:
             cur_heading_now = self.current_yaw
         progress_err_now = self.progress_error()
@@ -1136,7 +1256,11 @@ class GoToPointNode(Node):
             node_distance = math.hypot(dx, dy)
             cross_track_error = 0.0
             heading_to_node = math.atan2(dy, dx)
-            node_reached = node_distance <= self.pos_tol
+            
+            # 若是中繼轉角點，提前在 20 公分處就進入轉彎階段，讓動作更圓滑
+            is_final_node = (self.active_node_idx == len(self.path_nodes) - 1)
+            active_pos_tol = self.pos_tol if is_final_node else max(0.20, self.pos_tol)
+            node_reached = node_distance <= active_pos_tol
 
             current_heading = cur_heading_now
             desired_heading_for_turn = heading_to_node
@@ -1208,7 +1332,7 @@ class GoToPointNode(Node):
                     heading_error = 0.0
                     self.turn_dir_sign = 0.0
                     if not self.turn_budget_latched:
-                        self.get_logger().info(
+                        self.get_logger().debug(
                             f'turn budget reached: turned={math.degrees(turned_mag):.1f} deg, '
                             f'budget={math.degrees(turn_budget):.1f} deg'
                         )
@@ -1244,7 +1368,7 @@ class GoToPointNode(Node):
                         self.turn_heading_override = None
                         self.prev_turn_cmd_wz = 0.0
                         self._forward_realign_since = None
-                        self.get_logger().info(
+                        self.get_logger().debug(
                             f'node reached: {self.active_node_idx}/{len(self.path_nodes)} (continue forward)'
                         )
                         return
@@ -1257,7 +1381,7 @@ class GoToPointNode(Node):
                     self.turn_dir_sign = 0.0
                     self.turn_heading_override = None
                     self.prev_turn_cmd_wz = 0.0
-                    self.get_logger().info(f'node reached: {self.active_node_idx}/{len(self.path_nodes)}')
+                    self.get_logger().debug(f'node reached: {self.active_node_idx}/{len(self.path_nodes)}')
                     return
 
                 progress_err = self.progress_error()
@@ -1273,7 +1397,7 @@ class GoToPointNode(Node):
                     self._rebuild_node_path()
                     return
 
-                self.get_logger().info('all nodes reached, completing target')
+                self.get_logger().debug('all nodes reached, completing target')
                 self.drive_phase = 'arrived'
                 return
 
@@ -1294,7 +1418,7 @@ class GoToPointNode(Node):
                             self._turn_in_tol_since = None
                             self.turn_dir_sign = 0.0
                             self.prev_turn_cmd_wz = 0.0
-                            self.get_logger().info(
+                            self.get_logger().debug(
                                 f'rotate relax to forward: heading_err={math.degrees(heading_error):.1f} deg '
                                 f'hold={self.rotate_relax_hold_sec:.2f}s'
                             )
@@ -1366,7 +1490,7 @@ class GoToPointNode(Node):
                         self.turn_expected_mag = abs(normalize_angle(self.turn_target_yaw - current_heading))
                         self.turn_budget_active = self.turn_expected_mag >= self.turn_split_180_rad
                         self.prev_turn_cmd_wz = 0.0
-                        self.get_logger().info('near-180 staged turn: settling final heading')
+                        self.get_logger().debug('near-180 staged turn: settling final heading')
                         return
 
                     now = time.time()
@@ -1408,7 +1532,7 @@ class GoToPointNode(Node):
                     and node_distance > self.forward_force_rotate_dist
                 ):
                     self._forward_realign_since = None
-                    self.get_logger().info(
+                    self.get_logger().debug(
                         f'force rotate: heading_err={math.degrees(heading_error_forward):.1f} deg '
                         f'node_err={node_distance:.2f} m'
                     )
@@ -1428,7 +1552,7 @@ class GoToPointNode(Node):
                     if self._forward_realign_since is None:
                         self._forward_realign_since = now
                     elif (now - self._forward_realign_since) >= self.forward_realign_hold_sec:
-                        self.get_logger().info(
+                        self.get_logger().debug(
                             f'realign to rotate: heading_err={math.degrees(heading_error_forward):.1f} deg '
                             f'threshold={math.degrees(realign_enter):.1f} deg '
                             f'hold={self.forward_realign_hold_sec:.2f}s'
@@ -1545,7 +1669,26 @@ class GoToPointNode(Node):
                 self.prev_turn_cmd_wz = cmd.angular.z
 
         if (not self.path_nodes or self.active_node_idx >= len(self.path_nodes)) and self.target_yaw is not None:
-            yaw_error = normalize_angle(self.target_yaw - self.current_yaw)
+            if (
+                final_world_yaw_active
+                and progress_err_now is not None
+                and progress_err_now > self.final_pose_realign_tol
+                and (loop_now - self._last_final_pose_realign) >= self.final_pose_realign_cooldown_sec
+            ):
+                self._last_final_pose_realign = loop_now
+                self.get_logger().warn(
+                    f'final yaw drifted position: world_err={progress_err_now:.2f} m '
+                    f'(tol={self.final_pose_realign_tol:.2f} m), rebuilding path'
+                )
+                self.stop_robot()
+                self._rebuild_node_path()
+                return
+
+            if final_world_yaw_active and self.target_world_yaw is not None and self._world_pose_ready:
+                # Final yaw must converge in world frame to match the world-side completion check.
+                yaw_error = normalize_angle(self.target_world_yaw - self._world_yaw)
+            else:
+                yaw_error = normalize_angle(self.target_yaw - self.current_yaw)
             if abs(yaw_error) > self.yaw_tol:
                 self._yaw_in_tol_since = None
 
@@ -1571,7 +1714,7 @@ class GoToPointNode(Node):
             self.done = True
             self.stop_robot()
             self.prev_turn_cmd_wz = 0.0
-            self.get_logger().info(
+            self.get_logger().debug(
                 f'done: final=({self.current_x:.3f}, {self.current_y:.3f}), '
                 f'yaw={math.degrees(self.current_yaw):.1f} deg'
             )
@@ -1581,35 +1724,17 @@ class GoToPointNode(Node):
         self.cmd_pub.publish(cmd)
 
         now = time.time()
-        if now - self._last_log_time >= 1.0:
+        if now - self._last_log_time >= 3.0:
             self._last_log_time = now
-            final_odom_err = math.hypot(self.target_x - self.current_x, self.target_y - self.current_y)
-            node_text = (
-                f'node={min(self.active_node_idx + 1, max(len(self.path_nodes), 1))}/{max(len(self.path_nodes), 1)} '
-                f'phase={self.drive_phase} map_ready={int(self.map_ready)} '
-                f'yaw_err={heading_err_deg:.1f}deg yaw_rate={self.current_wz:.2f}rad/s '
-                f'drift={cross_track_error:.2f}m'
+            
+            cur_x = cur_x_now
+            cur_y = cur_y_now
+            yaw_deg = math.degrees(cur_heading_now)
+            elapsed = now - self.task_start_time
+            
+            self.get_logger().info(
+                f'Robot {self.robot_id} [Time: {elapsed:.1f}s] Position: x={cur_x:.3f}, y={cur_y:.3f}, angle={yaw_deg:.1f}°'
             )
-            if (
-                self._progress_cur_x is not None
-                and self._progress_cur_y is not None
-                and self._progress_goal_x is not None
-                and self._progress_goal_y is not None
-            ):
-                progress_err = math.hypot(
-                    self._progress_goal_x - self._progress_cur_x,
-                    self._progress_goal_y - self._progress_cur_y,
-                )
-                self.get_logger().info(
-                    f'moving[{self._progress_frame}]: cur=({self._progress_cur_x:.2f}, {self._progress_cur_y:.2f}) '
-                    f'goal=({self._progress_goal_x:.2f}, {self._progress_goal_y:.2f}) '
-                    f'err={progress_err:.2f} m (odom_final_err={final_odom_err:.2f} m, odom_node_err={node_distance:.2f} m, {node_text})'
-                )
-            else:
-                self.get_logger().info(
-                    f'moving: cur=({self.current_x:.2f}, {self.current_y:.2f}) '
-                    f'goal=({self.target_x:.2f}, {self.target_y:.2f}) err={final_odom_err:.2f} m ({node_text})'
-                )
 
 
 def parse_args():
@@ -1693,15 +1818,15 @@ def main():
     fixed_timeout_sec = 300.0
     fixed_pos_tol = 0.08
     fixed_yaw_tol_deg = 5.0
-    fixed_max_linear = 0.52
-    fixed_max_lateral = 0.21
-    fixed_max_angular = 0.67
-    fixed_max_angular_final = 0.17
-    fixed_k_linear = 1.28
-    fixed_k_lateral = 0.90
-    fixed_k_yaw = 0.90
-    fixed_turn_slowdown_deg = 60.0
-    fixed_yaw_settle_sec = 0.42
+    fixed_max_linear = 0.90
+    fixed_max_lateral = 0.35
+    fixed_max_angular = 1.20
+    fixed_max_angular_final = 0.25
+    fixed_k_linear = 1.50
+    fixed_k_lateral = 1.20
+    fixed_k_yaw = 1.50
+    fixed_turn_slowdown_deg = 45.0
+    fixed_yaw_settle_sec = 0.25
     fixed_min_approach_speed = 0.16
     fixed_min_approach_distance = 0.10
     fixed_node_step_distance = 0.50
@@ -1811,11 +1936,11 @@ def main():
     t0 = time.time()
 
     try:
-        node.get_logger().info(
+        node.get_logger().debug(
             f'fixed profile: robot={fixed_robot_id}, frame={fixed_frame}, world={fixed_world_name}'
         )
         if fixed_world_waypoints:
-            node.get_logger().info(
+            node.get_logger().debug(
                 f'coordinator path received: points={len(fixed_world_waypoints)}'
             )
 
@@ -1824,7 +1949,7 @@ def main():
             fixed_controller_recover_timeout,
         )
         if ok_controller:
-            node.get_logger().info(f'mecanum controller state: {controller_state}')
+            node.get_logger().debug(f'mecanum controller state: {controller_state}')
         else:
             node.get_logger().warn(
                 f'mecanum controller not active (state={controller_state}), waiting for odom anyway'
@@ -1878,7 +2003,7 @@ def main():
         if target_yaw_world_rad is not None:
             target_odom_yaw = normalize_angle(target_yaw_world_rad - yaw_world_from_odom_est)
 
-        node.get_logger().info(
+        node.get_logger().debug(
             f'world->odom calibrated: world_now=({world_x_now:.3f}, {world_y_now:.3f}), '
             f'odom_now=({odom_x_now:.3f}, {odom_y_now:.3f}), '
             f'dyaw={math.degrees(yaw_world_from_odom_est):.2f} deg'
@@ -1925,7 +2050,7 @@ def main():
             fixed_timeout_sec,
             (start_world_distance / progress_speed_floor) + 120.0,
         )
-        node.get_logger().info(
+        node.get_logger().debug(
             f'adaptive timeout: {adaptive_timeout_sec:.1f}s (start_dist={start_world_distance:.2f} m)'
         )
 
@@ -1967,8 +2092,11 @@ def main():
                         )
 
                         phase = node.drive_phase
+                        final_world_yaw_active = node.final_world_yaw_active()
                         # Keep dyaw tracking bounded and conservative to avoid frame-drift feedback loops.
-                        if phase == 'rotate_to_node':
+                        if final_world_yaw_active:
+                            max_step_rad = 0.0
+                        elif phase == 'rotate_to_node':
                             max_step_deg = fixed_world_yaw_track_rotate_step_deg
                             if abs(node.current_wz) > fixed_world_yaw_track_rotate_wz_gate:
                                 max_step_deg = min(max_step_deg, 2.0)
@@ -1987,7 +2115,11 @@ def main():
                                 yaw_world_from_odom_base + math.copysign(max_bias_from_base, bias_from_base)
                             )
 
-                        if yaw_drift_deg > 30.0 and now - last_yaw_drift_warn > 2.0:
+                        if (
+                            (not final_world_yaw_active)
+                            and yaw_drift_deg > 30.0
+                            and now - last_yaw_drift_warn > 2.0
+                        ):
                             node.get_logger().warn(
                                 f'world sync yaw tracked: candidate={math.degrees(yaw_world_from_odom_candidate):.1f} deg, '
                                 f'est={math.degrees(yaw_world_from_odom_est):.1f} deg, '
@@ -2006,7 +2138,7 @@ def main():
                         )
                         if sync_replan:
                             last_world_yaw_replan = now
-                            node.get_logger().info(
+                            node.get_logger().debug(
                                 f'world sync rotate replan: yaw_drift={yaw_drift_deg:.1f} deg '
                                 f'(candidate={math.degrees(yaw_world_from_odom_candidate):.1f} deg)'
                             )
@@ -2080,7 +2212,7 @@ def main():
                     or abs(effective_goal_world_y - args.y) > 1e-6
                 ):
                     goal_text += f', requested=({args.x:.3f}, {args.y:.3f})'
-                node.get_logger().info(
+                node.get_logger().debug(
                     f'world final: cur=({world_x_now:.3f}, {world_y_now:.3f}), '
                     f'{goal_text}, err={world_err:.3f} m, yaw={world_yaw_deg:.1f} deg'
                 )
@@ -2098,7 +2230,7 @@ def main():
                     world_yaw_err_deg = abs(
                         math.degrees(normalize_angle(target_yaw_world_rad - world_yaw_now))
                     )
-                    node.get_logger().info(
+                    node.get_logger().debug(
                         f'world final yaw: target={fixed_target_yaw_deg:.1f} deg, err={world_yaw_err_deg:.2f} deg'
                     )
                     yaw_done_tol = max(0.1, fixed_yaw_tol_deg)
@@ -2117,7 +2249,7 @@ def main():
     except ExternalShutdownException:
         exit_code = 130
     except KeyboardInterrupt:
-        node.get_logger().info('interrupted by user')
+        node.get_logger().debug('interrupted by user')
         exit_code = 130
     except RuntimeError as e:
         node.get_logger().error(str(e))

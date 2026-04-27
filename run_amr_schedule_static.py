@@ -9,7 +9,12 @@ import signal
 import subprocess
 import sys
 import time
+import xml.etree.ElementTree as ET
 
+ws_dir = os.path.dirname(os.path.abspath(__file__))
+if ws_dir not in sys.path:
+    sys.path.insert(0, ws_dir)
+from astar_planner import AStarGridPlanner
 
 MATERIAL_POINTS = {
     'A': (-2.5, 1.5),
@@ -36,21 +41,7 @@ SUPPLY_APPROACH_X = -2.0
 STATION_APPROACH_X = 1.5
 ARRIVE_EPS = 0.06
 
-GRID_STEP = 0.5
-LEFT_GATE_X = -2.0
-RIGHT_GATE_X = 2.0
-RIGHT_GATE_X_BY_ROBOT = {
-    1: 2.0,
-    2: 1.5,
-    3: 2.0,
-}
-TRANSIT_Y = {
-    1: -2.0,
-    2: 0.0,
-    3: 1.5,
-}
-MIDLINE_BLOCK_X = 0.5
-MIDLINE_DETOUR_Y = -0.5
+A_STAR_RESOLUTION = 0.5
 
 FACE_YAW_DEG = {
     '+X': 0.0,
@@ -66,6 +57,7 @@ class Stop:
     resource_key: str
     target: tuple[float, float]
     approach: tuple[float, float]
+    wait: tuple[float, float]
     dwell_sec: float
     face_label: str
     job_idx: int
@@ -113,60 +105,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         '--schedule',
         type=str,
-        default='amr_schedule_1.jsonl',
+        default='amr_schedule.jsonl',
         help='jsonl schedule path',
-    )
-    parser.add_argument(
-        '--go-to-script',
-        type=str,
-        default='go_to_point.py',
-        help='path to go_to_point.py',
-    )
-    parser.add_argument(
-        '--exec-timeout',
-        type=float,
-        default=240.0,
-        help='per-motion timeout in seconds',
-    )
-    parser.add_argument(
-        '--dry-run',
-        action='store_true',
-        help='print dispatch plan only, do not execute motion',
-    )
-    parser.add_argument(
-        '--show-waypoints',
-        action='store_true',
-        help='print full waypoint string per moving robot',
-    )
-    parser.add_argument(
-        '--max-stages',
-        type=int,
-        default=0,
-        help='stop after N dispatch rounds (0 means run full schedule)',
-    )
-    parser.add_argument(
-        '--stop-pos-tol',
-        type=float,
-        default=0.04,
-        help='strict position tolerance (m) for station/supply target phase',
-    )
-    parser.add_argument(
-        '--stop-yaw-tol-deg',
-        type=float,
-        default=2.5,
-        help='strict yaw tolerance (deg) for station/supply target phase',
-    )
-    parser.add_argument(
-        '--stop-yaw-settle-sec',
-        type=float,
-        default=0.55,
-        help='required yaw-in-tolerance settle time (s) for station/supply target phase',
-    )
-    parser.add_argument(
-        '--station-yaw-deg',
-        type=float,
-        default=0.0,
-        help='final heading (deg) enforced for station target phase',
     )
     return parser.parse_args()
 
@@ -197,6 +137,15 @@ def dist(a: tuple[float, float], b: tuple[float, float]) -> float:
     return math.hypot(a[0] - b[0], a[1] - b[1])
 
 
+def get_wait_pos(target: tuple[float, float], kind: str) -> tuple[float, float]:
+    tx, ty = target
+    offset = -0.5 if ty > 0 else 0.5
+    if abs(ty) < 0.1: offset = 0.5
+    wy = ty + offset
+    wx = 1.5 if kind == 'station' else -2.0
+    return (wx, wy)
+
+
 def build_stop_list(jobs: list[dict]) -> list[Stop]:
     stops: list[Stop] = []
     for job in jobs:
@@ -219,6 +168,7 @@ def build_stop_list(jobs: list[dict]) -> list[Stop]:
                     resource_key=f'supply_{material}',
                     target=supply_xy,
                     approach=(SUPPLY_APPROACH_X, supply_xy[1]),
+                    wait=get_wait_pos(supply_xy, 'supply'),
                     dwell_sec=SUPPLY_DWELL_SEC,
                     face_label='-X',
                     job_idx=job_idx,
@@ -231,6 +181,7 @@ def build_stop_list(jobs: list[dict]) -> list[Stop]:
                 resource_key=station_name,
                 target=station_xy,
                 approach=(STATION_APPROACH_X, station_xy[1]),
+                wait=get_wait_pos(station_xy, 'station'),
                 dwell_sec=max(0.0, duration),
                 face_label='+X',
                 job_idx=job_idx,
@@ -293,6 +244,95 @@ def lock_available(
     return now >= until
 
 
+def yaw_from_quaternion(x: float, y: float, z: float, w: float) -> float:
+    return math.atan2(2.0 * (w * z + x * y), 1.0 - 2.0 * (y * y + z * z))
+
+
+def parse_scalar(block: str, key: str, default: float = 0.0) -> float:
+    m = re.search(rf"\b{re.escape(key)}:\s*([-+]?\d*\.?\d+(?:[eE][-+]?\d+)?)", block)
+    return float(m.group(1)) if m else default
+
+
+def parse_world_pose_snapshot(output: str) -> dict[str, tuple[float, float, float]]:
+    found = {}
+    lines = output.splitlines()
+    i = 0
+    while i < len(lines):
+        if lines[i].strip() != 'pose {':
+            i += 1
+            continue
+        depth = 1
+        i += 1
+        block_lines = []
+        while i < len(lines) and depth > 0:
+            line = lines[i]
+            depth += line.count('{')
+            depth -= line.count('}')
+            block_lines.append(line)
+            i += 1
+        block = '\n'.join(block_lines)
+        m_name = re.search(r'name:\s*"([^"]+)"', block)
+        if not m_name:
+            continue
+        name = m_name.group(1)
+        m_pos = re.search(r'position\s*\{([^}]*)\}', block, re.S)
+        m_ori = re.search(r'orientation\s*\{([^}]*)\}', block, re.S)
+        pos_block = m_pos.group(1) if m_pos else ''
+        ori_block = m_ori.group(1) if m_ori else ''
+        x = parse_scalar(pos_block, 'x', 0.0)
+        y = parse_scalar(pos_block, 'y', 0.0)
+        qx = parse_scalar(ori_block, 'x', 0.0)
+        qy = parse_scalar(ori_block, 'y', 0.0)
+        qz = parse_scalar(ori_block, 'z', 0.0)
+        qw = parse_scalar(ori_block, 'w', 1.0)
+        yaw = yaw_from_quaternion(qx, qy, qz, qw)
+        found[name] = (x, y, yaw)
+    return found
+
+
+def read_world_poses(world_name: str, timeout_sec: float) -> dict[str, tuple[float, float, float]]:
+    topic = f'/world/{world_name}/pose/info'
+    try:
+        output = subprocess.check_output(
+            ['ign', 'topic', '-e', '-t', topic, '-n', '1'],
+            stderr=subprocess.STDOUT,
+            text=True,
+            timeout=max(timeout_sec, 0.5),
+        )
+        return parse_world_pose_snapshot(output)
+    except Exception:
+        return {}
+
+
+def get_wait_pos_candidates(current: tuple[float, float], target: tuple[float, float], kind: str) -> list[tuple[float, float]]:
+    tx, ty = target
+    cy = current[1]
+    wx = 1.5 if kind == 'station' else -2.0
+    
+    # 將待命點限制在 2.0 到 -2.0 之間，避免選到 2.5 或 -2.5 被上下邊緣的虛擬牆壁擋住
+    valid_y = [y / 10.0 for y in range(20, -21, -5)]
+    if kind == 'station':
+        doors = [2.0, 1.0, 0.0, -1.0, -2.0]
+    else:
+        doors = [1.5, 0.0, -1.5]
+        
+    def score(wy: float):
+        dist_to_target = abs(wy - ty)
+        dist_to_current = abs(wy - cy)
+        passed_target = ((wy - cy) * (ty - cy) > 0) and (abs(wy - cy) > abs(ty - cy))
+        penalty = 10.0 if passed_target else 0.0
+        return penalty + dist_to_target + dist_to_current * 0.01
+        
+    candidates = []
+    for wy in valid_y:
+        if any(abs(wy - dy) < 0.1 for dy in doors):
+            continue
+        candidates.append((wx, wy))
+        
+    candidates.sort(key=lambda p: score(p[1]))
+    return candidates
+
+
 def advance_zero_move(state: RobotState, now: float, resource_locks: dict[str, tuple[int, float]]):
     while True:
         if state.done():
@@ -324,9 +364,14 @@ def advance_zero_move(state: RobotState, now: float, resource_locks: dict[str, t
 
 def build_next_action(
     state: RobotState,
+    states: dict[int, RobotState],
+    active: dict[int, ActiveMotion],
     now: float,
     resource_locks: dict[str, tuple[int, float]],
     active_target_owners: dict[str, int],
+    proposed_moving: set[int],
+    stage_idx: int,
+    live_poses: dict[str, tuple[float, float, float]],
 ) -> StageAction:
     advance_zero_move(state, now, resource_locks)
 
@@ -351,71 +396,142 @@ def build_next_action(
         )
 
     stop = state.stops[state.stop_index]
-    if state.phase == 0:
-        # If already on station target, do not backtrack to approach x.
-        # Dispatch target phase directly so go_to_point enforces final heading.
-        if stop.kind == 'station' and dist(state.current, stop.target) <= ARRIVE_EPS:
+
+    def is_locked() -> bool:
+        # Special case for the first round to allow swapping positions at supply points.
+        # This prevents deadlock when one robot needs to move to a supply spot just vacated by another.
+        if stage_idx == 0 and stop.kind == 'supply':
             owner = active_target_owners.get(stop.resource_key)
             if owner is not None and owner != state.robot_id:
-                return StageAction(
-                    robot_id=state.robot_id,
-                    move=False,
-                    phase='hold',
-                    target=state.current,
-                    stop=None,
-                    reason=f'waiting in-flight {stop.resource_key} by AMR{owner}',
-                )
+                return True
+            if not lock_available(resource_locks, stop.resource_key, state.robot_id, now):
+                return True
+            # In round 1, for supply points, ignore physical presence of other robots.
+            return False
 
-            if lock_available(resource_locks, stop.resource_key, state.robot_id, now):
-                return StageAction(
-                    robot_id=state.robot_id,
-                    move=True,
-                    phase='target',
-                    target=stop.target,
-                    stop=stop,
-                    reason='already at station target, enforce heading',
-                )
+        owner = active_target_owners.get(stop.resource_key)
+        if owner is not None and owner != state.robot_id:
+            return True
+        if not lock_available(resource_locks, stop.resource_key, state.robot_id, now):
+            return True
+            
+        for other_rid, other_state in states.items():
+            if other_rid == state.robot_id:
+                continue
+            
+            ox, oy = other_state.current
+            if other_state.amr_name in live_poses:
+                ox, oy = live_poses[other_state.amr_name][:2]
+                
+            if dist((ox, oy), stop.target) <= 0.45 or dist((ox, oy), stop.approach) <= 0.45:
+                return True
+        return False
 
+    # If already on exact target, do not backtrack. Dispatch target directly to enforce heading.
+    if dist(state.current, stop.target) <= ARRIVE_EPS:
+        if is_locked():
             return StageAction(
                 robot_id=state.robot_id,
                 move=False,
                 phase='hold',
                 target=state.current,
                 stop=None,
-                reason=f'waiting resource {stop.resource_key}',
+                reason=f'waiting in-flight or locked {stop.resource_key}',
             )
 
-        # When already on the right station lane (x~=2.0), go directly to station target.
-        # This prevents x=2.0 -> 1.5 -> 2.0 pullback between station-to-station jobs.
-        if stop.kind == 'station' and state.current[0] >= (stop.target[0] - ARRIVE_EPS):
-            owner = active_target_owners.get(stop.resource_key)
-            if owner is not None and owner != state.robot_id:
-                return StageAction(
-                    robot_id=state.robot_id,
-                    move=False,
-                    phase='hold',
-                    target=state.current,
-                    stop=None,
-                    reason=f'waiting in-flight {stop.resource_key} by AMR{owner}',
-                )
+        return StageAction(
+            robot_id=state.robot_id,
+            move=True,
+            phase='target',
+            target=stop.target,
+            stop=stop,
+            reason='already at station target, enforce heading',
+        )
 
-            if lock_available(resource_locks, stop.resource_key, state.robot_id, now):
-                return StageAction(
-                    robot_id=state.robot_id,
-                    move=True,
-                    phase='target',
-                    target=stop.target,
-                    stop=stop,
-                    reason='station direct target from right lane',
-                )
+    on_direct_lane = False
+    if stop.kind == 'station' and state.current[0] >= (stop.target[0] - ARRIVE_EPS):
+        on_direct_lane = True
+    elif stop.kind == 'supply' and state.current[0] <= (stop.target[0] + ARRIVE_EPS):
+        on_direct_lane = True
 
+    if is_locked():
+        if on_direct_lane:
             return StageAction(
                 robot_id=state.robot_id,
                 move=False,
                 phase='hold',
                 target=state.current,
                 stop=None,
-                reason=f'waiting resource {stop.resource_key}',
+                reason=f'holding in lane for {stop.resource_key}',
+            )
+
+        candidates = get_wait_pos_candidates(state.current, stop.target, stop.kind)
+        selected_wait = None
+        
+        for dynamic_wait in candidates:
+            wait_key = f"wait_{dynamic_wait[0]}_{dynamic_wait[1]}"
+            
+            wait_owner = active_target_owners.get(wait_key)
+            if wait_owner is not None and wait_owner != state.robot_id:
+                continue
+                
+            physically_occupied = False
+            for other_rid, other_state in states.items():
+                if other_rid == state.robot_id:
+                    continue
+                
+                ox, oy = other_state.current
+                if other_state.amr_name in live_poses:
+                    ox, oy = live_poses[other_state.amr_name][:2]
+                    
+                if dist((ox, oy), dynamic_wait) <= 0.45:
+                    physically_occupied = True
+                    break
+                    
+            if physically_occupied:
+                continue
+                
+            selected_wait = dynamic_wait
+            break
+            
+        if selected_wait is None:
+            return StageAction(
+                robot_id=state.robot_id,
+                move=False,
+                phase='hold',
+                target=state.current,
+                stop=None,
+                reason='all wait points occupied, holding at current',
+            )
+            
+        if dist(state.current, selected_wait) > ARRIVE_EPS:
+            return StageAction(
+                robot_id=state.robot_id,
+                move=True,
+                phase='wait',
+                target=selected_wait,
+                stop=stop,
+                reason=f'moving to wait point for {stop.resource_key}',
+            )
+        else:
+            return StageAction(
+                robot_id=state.robot_id,
+                move=False,
+                phase='hold',
+                target=state.current,
+                stop=None,
+                reason=f'holding at wait point for {stop.resource_key}',
+            )
+
+    if state.phase == 0:
+        if on_direct_lane:
+            return StageAction(
+                robot_id=state.robot_id,
+                move=True,
+                phase='target',
+                target=stop.target,
+                stop=stop,
+                reason=f'{stop.kind} direct target from lane',
             )
 
         return StageAction(
@@ -427,34 +543,13 @@ def build_next_action(
             reason='approach for heading',
         )
 
-    owner = active_target_owners.get(stop.resource_key)
-    if owner is not None and owner != state.robot_id:
-        return StageAction(
-            robot_id=state.robot_id,
-            move=False,
-            phase='hold',
-            target=state.current,
-            stop=None,
-            reason=f'waiting in-flight {stop.resource_key} by AMR{owner}',
-        )
-
-    if lock_available(resource_locks, stop.resource_key, state.robot_id, now):
-        return StageAction(
-            robot_id=state.robot_id,
-            move=True,
-            phase='target',
-            target=stop.target,
-            stop=stop,
-            reason='execute stop',
-        )
-
     return StageAction(
         robot_id=state.robot_id,
-        move=False,
-        phase='hold',
-        target=state.current,
-        stop=None,
-        reason=f'waiting resource {stop.resource_key}',
+        move=True,
+        phase='target',
+        target=stop.target,
+        stop=stop,
+        reason='execute stop',
     )
 
 
@@ -481,281 +576,144 @@ def next_lock_release_time(resource_locks: dict[str, tuple[int, float]], now: fl
     return min(waits)
 
 
-def append_point(route: list[tuple[float, float]], x: float, y: float):
-    p = (round(float(x), 3), round(float(y), 3))
-    if route and dist(route[-1], p) <= 1e-6:
-        return
-    route.append(p)
+def load_world_map(world_file: str, resolution: float) -> tuple[int, int, list[bool]]:
+    tree = ET.parse(world_file)
+    root = tree.getroot()
+    world_elem = next((elem for elem in root.iter() if elem.tag.split('}')[-1] == 'world'), None)
+    width = int(round(5.0 / resolution)) + 1
+    height = width
+    blocked = [False] * (width * height)
+
+    if world_elem is not None:
+        for model in world_elem:
+            if model.tag.split('}')[-1] != 'model': continue
+            if not model.attrib.get('name', '').startswith('Obstacle'): continue
+            static_text = ''
+            pose_text = ''
+            for child in model:
+                tag = child.tag.split('}')[-1]
+                if tag == 'static' and child.text: static_text = child.text.strip().lower()
+                if tag == 'pose' and child.text: pose_text = child.text.strip()
+            if static_text not in ('1', 'true', 'yes'): continue
+            vals = re.findall(r'[-+]?\d*\.?\d+(?:[eE][-+]?\d+)?', pose_text)
+            if len(vals) < 2: continue
+            x, y = float(vals[0]), float(vals[1])
+            snapped_x = round((x - (-2.5)) / resolution) * resolution + (-2.5)
+            snapped_y = round((y - (-2.5)) / resolution) * resolution + (-2.5)
+            mx = int(math.floor((snapped_x - (-2.5 - 0.5 * resolution)) / resolution))
+            my = int(math.floor((snapped_y - (-2.5 - 0.5 * resolution)) / resolution))
+            if 0 <= mx < width and 0 <= my < height:
+                blocked[my * width + mx] = True
+
+    # 加上「虛擬牆壁」來強制 A* 遵守原本的專用道規則 (避免撞牆與誤闖站點)
+    station_y = [2.0, 1.0, 0.0, -1.0, -2.0]
+    supply_y = [1.5, 0.0, -1.5]
+    
+    for cx in range(width):
+        for cy in range(height):
+            wx = -2.5 - 0.5 * resolution + (cx + 0.5) * resolution
+            wy = -2.5 - 0.5 * resolution + (cy + 0.5) * resolution
+            idx = cy * width + cx
+            
+            # 1. 封鎖地圖最上方與最下方的牆壁邊緣
+            if wy > 2.15 or wy < -2.15:
+                blocked[idx] = True
+                
+            # 2. 封鎖右側 (工作站區域 x >= 1.75)，只留下站點正前方的通道
+            if wx >= 1.75:
+                is_door = any(abs(wy - sy) < 0.2 for sy in station_y)
+                if not is_door:
+                    blocked[idx] = True
+                    
+            # 3. 封鎖左側 (供料區 x <= -2.25)，只留下供料區正前方的通道
+            if wx <= -2.25:
+                is_door = any(abs(wy - sy) < 0.2 for sy in supply_y)
+                if not is_door:
+                    blocked[idx] = True
+
+    return width, height, blocked
 
 
-def append_horizontal(route: list[tuple[float, float]], target_x: float):
-    cur_x, cur_y = route[-1]
-    target_x = float(target_x)
-    if abs(target_x - cur_x) <= 1e-6:
-        return
-
-    step = GRID_STEP if target_x > cur_x else -GRID_STEP
-    x = cur_x
-    for _ in range(200):
-        remain = target_x - x
-        if remain * step <= 1e-6:
-            break
-        x_next = x + step
-        if (target_x - x_next) * step < 0.0:
-            x_next = target_x
-        append_point(route, x_next, cur_y)
-        x = x_next
-    else:
-        raise RuntimeError('append_horizontal iteration overflow')
-
-
-def append_vertical(route: list[tuple[float, float]], target_y: float):
-    cur_x, cur_y = route[-1]
-    target_y = float(target_y)
-    if abs(target_y - cur_y) <= 1e-6:
-        return
-
-    step = GRID_STEP if target_y > cur_y else -GRID_STEP
-    y = cur_y
-    for _ in range(200):
-        remain = target_y - y
-        if remain * step <= 1e-6:
-            break
-        y_next = y + step
-        if (target_y - y_next) * step < 0.0:
-            y_next = target_y
-        append_point(route, cur_x, y_next)
-        y = y_next
-    else:
-        raise RuntimeError('append_vertical iteration overflow')
-
-
-def append_cross_corridor(
-    route: list[tuple[float, float]],
-    target_x: float,
-    transit_y: float,
-    prefer_fewer_turns: bool = False,
-):
-    append_vertical(route, transit_y)
-    cur_x, cur_y = route[-1]
-
-    if abs(cur_y) > 1e-6:
-        append_horizontal(route, target_x)
-        return
-
-    crossing_to_right = cur_x < MIDLINE_BLOCK_X < target_x
-    crossing_to_left = cur_x > MIDLINE_BLOCK_X > target_x
-
-    if not crossing_to_right and not crossing_to_left:
-        append_horizontal(route, target_x)
-        return
-
-    if crossing_to_right:
-        append_horizontal(route, 0.0)
-        append_vertical(route, MIDLINE_DETOUR_Y)
-        append_horizontal(route, 1.0)
-        if prefer_fewer_turns:
-            # Keep rightward crossing on detour lane to avoid an extra up/down turn.
-            append_horizontal(route, target_x)
-            return
-        append_vertical(route, 0.0)
-        append_horizontal(route, target_x)
-        return
-
-    append_horizontal(route, 1.0)
-    append_vertical(route, MIDLINE_DETOUR_Y)
-    append_horizontal(route, 0.0)
-    append_vertical(route, 0.0)
-    append_horizontal(route, target_x)
-
-
-def route_turn_count(route: list[tuple[float, float]]) -> int:
-    if len(route) <= 2:
-        return 0
-
-    dirs: list[tuple[int, int]] = []
-    for i in range(1, len(route)):
-        dx = route[i][0] - route[i - 1][0]
-        dy = route[i][1] - route[i - 1][1]
-        if abs(dx) <= 1e-6 and abs(dy) <= 1e-6:
-            continue
-        if abs(dx) >= abs(dy):
-            dirs.append((1 if dx > 0.0 else -1, 0))
-        else:
-            dirs.append((0, 1 if dy > 0.0 else -1))
-
-    if len(dirs) <= 1:
-        return 0
-
-    turns = 0
-    prev = dirs[0]
-    for d in dirs[1:]:
-        if d != prev:
-            turns += 1
-        prev = d
-    return turns
-
-
-def route_axis_length(route: list[tuple[float, float]]) -> float:
-    total = 0.0
-    for i in range(1, len(route)):
-        dx = abs(route[i][0] - route[i - 1][0])
-        dy = abs(route[i][1] - route[i - 1][1])
-        total += (dx + dy)
-    return total
-
-
-def choose_best_route(candidates: list[list[tuple[float, float]]]) -> list[tuple[float, float]]:
-    if not candidates:
-        return []
-    return min(
-        candidates,
-        key=lambda r: (route_turn_count(r), route_axis_length(r), len(r)),
-    )
-
-
-def classify_side(x: float) -> str:
-    if x <= -1.2:
-        return 'left'
-    if x >= 1.2:
-        return 'right'
-    return 'center'
-
-
-def build_static_route(
-    robot_id: int,
-    start: tuple[float, float],
-    goal: tuple[float, float],
-) -> list[tuple[float, float]]:
-    sx, sy = float(start[0]), float(start[1])
-    gx, gy = float(goal[0]), float(goal[1])
-
-    def new_route() -> list[tuple[float, float]]:
-        r: list[tuple[float, float]] = []
-        append_point(r, sx, sy)
-        return r
-
-    def finalize(r: list[tuple[float, float]]) -> list[tuple[float, float]]:
-        append_point(r, gx, gy)
-        return r
-
-    s_side = classify_side(sx)
-    g_side = classify_side(gx)
-    transit_y = TRANSIT_Y[robot_id]
-    right_gate_x = RIGHT_GATE_X_BY_ROBOT.get(robot_id, RIGHT_GATE_X)
-    right_gate_to_goal = min(right_gate_x, gx)
-    right_gate_from_start = min(right_gate_x, sx)
-
-    if s_side == 'left' and g_side == 'left':
-        candidates: list[list[tuple[float, float]]] = []
-
-        # Legacy corridor style: keep away from world edge.
-        r_gate = new_route()
-        append_horizontal(r_gate, LEFT_GATE_X)
-        append_vertical(r_gate, gy)
-        append_horizontal(r_gate, gx)
-        candidates.append(finalize(r_gate))
-
-        # Lower-turn variants on the same side.
-        r_yx = new_route()
-        append_vertical(r_yx, gy)
-        append_horizontal(r_yx, gx)
-        candidates.append(finalize(r_yx))
-
-        r_xy = new_route()
-        append_horizontal(r_xy, gx)
-        append_vertical(r_xy, gy)
-        candidates.append(finalize(r_xy))
-
-        return choose_best_route(candidates)
-    elif s_side == 'right' and g_side == 'right':
-        candidates = []
-
-        r_yx = new_route()
-        append_vertical(r_yx, gy)
-        append_horizontal(r_yx, gx)
-        candidates.append(finalize(r_yx))
-
-        r_xy = new_route()
-        append_horizontal(r_xy, gx)
-        append_vertical(r_xy, gy)
-        candidates.append(finalize(r_xy))
-
-        return choose_best_route(candidates)
-    elif s_side == 'left' and g_side == 'right':
-        route = new_route()
-        append_horizontal(route, LEFT_GATE_X)
-        append_cross_corridor(route, right_gate_to_goal, transit_y, prefer_fewer_turns=True)
-        append_vertical(route, gy)
-        append_horizontal(route, gx)
-        return finalize(route)
-    elif s_side == 'right' and g_side == 'left':
-        route = new_route()
-        append_horizontal(route, right_gate_from_start)
-        append_cross_corridor(route, LEFT_GATE_X, transit_y)
-        append_vertical(route, gy)
-        append_horizontal(route, gx)
-        return finalize(route)
-    else:
-        # Fallback for center-side starts/goals.
-        candidates = []
-
-        mid_gate = LEFT_GATE_X if gx < 0.0 else min(RIGHT_GATE_X, gx)
-        r_gate = new_route()
-        append_horizontal(r_gate, mid_gate)
-        append_vertical(r_gate, gy)
-        append_horizontal(r_gate, gx)
-        candidates.append(finalize(r_gate))
-
-        r_yx = new_route()
-        append_vertical(r_yx, gy)
-        append_horizontal(r_yx, gx)
-        candidates.append(finalize(r_yx))
-
-        r_xy = new_route()
-        append_horizontal(r_xy, gx)
-        append_vertical(r_xy, gy)
-        candidates.append(finalize(r_xy))
-
-        return choose_best_route(candidates)
-
-
-def route_cells(route: list[tuple[float, float]]) -> set[tuple[float, float]]:
-    cells: set[tuple[float, float]] = set()
-    if not route:
+def get_route_cells(world_path: list[tuple[float, float]], resolution: float) -> set[tuple[int, int]]:
+    cells = set()
+    if not world_path: return cells
+    
+    if len(world_path) == 1:
+        wx, wy = world_path[0]
+        mx = int(math.floor((wx - (-2.5 - 0.5 * resolution)) / resolution))
+        my = int(math.floor((wy - (-2.5 - 0.5 * resolution)) / resolution))
+        cells.add((mx, my))
         return cells
-
-    def cell_snap(v: float) -> float:
-        return round(v / GRID_STEP) * GRID_STEP
-
-    cells.add((cell_snap(route[0][0]), cell_snap(route[0][1])))
-    for i in range(1, len(route)):
-        x0, y0 = route[i - 1]
-        x1, y1 = route[i]
-        seg_len = max(abs(x1 - x0), abs(y1 - y0))
-        steps = max(1, int(math.ceil(seg_len / GRID_STEP)))
+        
+    for i in range(1, len(world_path)):
+        x0, y0 = world_path[i-1]
+        x1, y1 = world_path[i]
+        dist = math.hypot(x1 - x0, y1 - y0)
+        steps = max(1, int(math.ceil(dist / (resolution * 0.5))))
         for k in range(steps + 1):
             t = k / steps
-            x = x0 + (x1 - x0) * t
-            y = y0 + (y1 - y0) * t
-            cells.add((cell_snap(x), cell_snap(y)))
+            wx = x0 + (x1 - x0) * t
+            wy = y0 + (y1 - y0) * t
+            mx = int(math.floor((wx - (-2.5 - 0.5 * resolution)) / resolution))
+            my = int(math.floor((wy - (-2.5 - 0.5 * resolution)) / resolution))
+            cells.add((mx, my))
     return cells
 
 
-def overlap_summary(routes: dict[int, list[tuple[float, float]]]) -> str:
-    if len(routes) < 2:
-        return 'n/a'
+def build_smart_astar_route(
+    planner_base: AStarGridPlanner,
+    resolution: float,
+    start: tuple[float, float],
+    goal: tuple[float, float],
+    blocked_cells: set[tuple[int, int]],
+) -> list[tuple[float, float]] | None:
+    width = planner_base.width
+    height = planner_base.height
+    grid = planner_base.blocked.copy()
 
-    cell_map = {rid: route_cells(path) for rid, path in routes.items()}
-    parts: list[str] = []
-    ids = sorted(routes.keys())
-    for i in range(len(ids)):
-        for j in range(i + 1, len(ids)):
-            ra = ids[i]
-            rb = ids[j]
-            overlap = len(cell_map[ra].intersection(cell_map[rb]))
-            parts.append(f'r{ra}-r{rb}:{overlap}')
-    return ', '.join(parts)
+    for mx, my in blocked_cells:
+        if 0 <= mx < width and 0 <= my < height:
+            grid[my * width + mx] = True
+
+    temp_planner = AStarGridPlanner(width, height, grid)
+    smx = int(math.floor((start[0] - (-2.5 - 0.5 * resolution)) / resolution))
+    smy = int(math.floor((start[1] - (-2.5 - 0.5 * resolution)) / resolution))
+    gmx = int(math.floor((goal[0] - (-2.5 - 0.5 * resolution)) / resolution))
+    gmy = int(math.floor((goal[1] - (-2.5 - 0.5 * resolution)) / resolution))
+
+    start_cell = temp_planner.find_nearest_free_cell(smx, smy, max_radius_cells=2)
+    goal_cell = temp_planner.find_nearest_free_cell(gmx, gmy, max_radius_cells=2)
+
+    if not start_cell or not goal_cell:
+        return None
+
+    path_cells = temp_planner.plan(start_cell, goal_cell)
+    if not path_cells:
+        return None
+
+    compressed = temp_planner.compress_path(path_cells)
+    world_path = [start]
+    
+    for cx, cy in compressed:
+        wx = -2.5 - 0.5 * resolution + (cx + 0.5) * resolution
+        wy = -2.5 - 0.5 * resolution + (cy + 0.5) * resolution
+        wx_round, wy_round = round(wx, 3), round(wy, 3)
+        
+        last_wx, last_wy = world_path[-1]
+        if abs(last_wx - wx_round) > 1e-3 and abs(last_wy - wy_round) > 1e-3:
+            world_path.append((wx_round, last_wy))
+            
+        if math.hypot(world_path[-1][0] - wx_round, world_path[-1][1] - wy_round) > 1e-3:
+            world_path.append((wx_round, wy_round))
+
+    last_wx, last_wy = world_path[-1]
+    if abs(last_wx - goal[0]) > 1e-3 and abs(last_wy - goal[1]) > 1e-3:
+        world_path.append((goal[0], last_wy))
+
+    if math.hypot(world_path[-1][0] - goal[0], world_path[-1][1] - goal[1]) > 1e-3:
+        world_path.append(goal)
+        
+    return world_path
 
 
 def serialize_waypoints(points: list[tuple[float, float]]) -> str:
@@ -786,6 +744,9 @@ def apply_completed_motion(
     resource_locks: dict[str, tuple[int, float]],
 ):
     state.current = goal
+    if phase == 'wait':
+        return
+
     if phase == 'approach':
         state.phase = 1
         return
@@ -849,20 +810,35 @@ def build_go_to_cmd(
 def active_target_owner_map(active: dict[int, ActiveMotion]) -> dict[str, int]:
     owners: dict[str, int] = {}
     for rid, motion in active.items():
-        if motion.phase == 'target' and motion.stop is not None:
+        if motion.phase in ('approach', 'target') and motion.stop is not None:
             owners[motion.stop.resource_key] = rid
+        elif motion.phase == 'wait':
+            owners[f"wait_{motion.goal[0]}_{motion.goal[1]}"] = rid
     return owners
 
 
 def main() -> int:
     args = parse_args()
 
+    # Default parameters moved from CLI args
+    go_to_script_arg = 'go_to_point.py'
+    exec_timeout_arg = 240.0
+    dry_run_arg = False
+    show_waypoints_arg = False
+    max_stages_arg = 0
+    stop_pos_tol_arg = 0.04
+    stop_yaw_tol_deg_arg = 2.5
+    stop_yaw_settle_sec_arg = 0.55
+    station_yaw_deg_arg = 0.0
+
     ws_dir = os.path.dirname(os.path.abspath(__file__))
     schedule_path = args.schedule
-    if not os.path.isabs(schedule_path):
+    if os.path.isabs(schedule_path) or os.path.dirname(schedule_path):
+        schedule_path = os.path.abspath(schedule_path)
+    else:
         schedule_path = os.path.join(ws_dir, schedule_path)
 
-    go_to_script = args.go_to_script
+    go_to_script = go_to_script_arg
     if not os.path.isabs(go_to_script):
         go_to_script = os.path.join(ws_dir, go_to_script)
     if not os.path.isfile(go_to_script):
@@ -876,23 +852,124 @@ def main() -> int:
         return 1
 
     print(f'[INFO] loaded schedule: {schedule_path}')
-    print('[INFO] route mode: static corridors (predefined, no online overlap waits)')
+    print('[INFO] route mode: A* dynamic planning with virtual corridors')
     for rid in (1, 2, 3):
         st = states[rid]
-        print(f'[INFO] {st.amr_name}: stops={len(st.stops)}, start={st.current}, transit_y={TRANSIT_Y[rid]:.1f}')
+        print(f'[INFO] {st.amr_name}: stops={len(st.stops)}, start={st.current}')
+
+    world_file = os.path.join(ws_dir, 'src', 'yahboom_rosmaster', 'yahboom_rosmaster_gazebo', 'worlds', 'temp.world')
+    if not os.path.exists(world_file):
+        world_file = os.path.join(ws_dir, 'install', 'yahboom_rosmaster_gazebo', 'share', 'yahboom_rosmaster_gazebo', 'worlds', 'temp.world')
+        
+    if not os.path.exists(world_file):
+        print(f'[ERROR] world file not found: {world_file}')
+        return 1
+
+    map_width, map_height, map_blocked = load_world_map(world_file, A_STAR_RESOLUTION)
+    base_planner = AStarGridPlanner(map_width, map_height, map_blocked)
 
     stage_idx = 0
     resource_locks: dict[str, tuple[int, float]] = {}
     active: dict[int, ActiveMotion] = {}
-    max_dispatch_rounds = max(0, int(args.max_stages))
+    max_dispatch_rounds = max(0, int(max_stages_arg))
     allow_new_rounds = True
-    per_motion_timeout = max(10.0, float(args.exec_timeout))
+    per_motion_timeout = max(10.0, float(exec_timeout_arg))
+    last_yield_reason: dict[int, str] = {}
+    last_replan_time = 0.0
+    live_poses: dict[str, tuple[float, float, float]] = {}
 
     try:
         while True:
             now = time.time()
             release_expired_locks(resource_locks, now)
             progressed = False
+
+            # 獲取即時座標，用於中斷檢查與路徑放行
+            if now - last_replan_time > 0.5:
+                last_replan_time = now
+                new_poses = read_world_poses('default', 0.5)
+                if new_poses:
+                    live_poses = new_poses
+
+                for rid, motion in list(active.items()):
+                    amr_name = states[rid].amr_name
+                    if amr_name not in live_poses:
+                        continue
+                    px, py, _ = live_poses[amr_name]
+
+                    # 如果已經快抵達目標 (< 0.3m)，不中斷以確保對位進站順利
+                    if dist((px, py), motion.goal) < 0.3:
+                        continue
+
+                    # 建立臨時狀態機模擬
+                    temp_state = RobotState(
+                        robot_id=states[rid].robot_id,
+                        amr_name=states[rid].amr_name,
+                        stops=states[rid].stops,
+                        current=(px, py),
+                        stop_index=states[rid].stop_index,
+                        phase=states[rid].phase,
+                        ready_time=states[rid].ready_time,
+                    )
+                    
+                    temp_active = {k: v for k, v in active.items() if k != rid}
+                    temp_owner_map = active_target_owner_map(temp_active)
+
+                    new_action = build_next_action(
+                        state=temp_state,
+                        states=states,
+                        active=temp_active,
+                        now=now,
+                        resource_locks=resource_locks,
+                        active_target_owners=temp_owner_map,
+                        proposed_moving=set(),
+                        stage_idx=stage_idx,
+                        live_poses=live_poses,
+                    )
+
+                    should_preempt = False
+                    preempt_reason = ""
+
+                    # 狀況 A：本來要去排隊，結果目標空出來了！直接去目標
+                    if new_action.phase == 'target' and motion.phase == 'wait':
+                        should_preempt = True
+                        preempt_reason = "target became available"
+                    elif new_action.phase == 'approach' and motion.phase == 'wait':
+                        should_preempt = True
+                        preempt_reason = "approach became available"
+
+                    # 狀況 B：本來的行駛路線上，有其他的車剛好「停下來了」擋住路
+                    if not should_preempt and motion.route:
+                        current_blocked = set()
+                        for other_rid, other_state in states.items():
+                            if other_rid == rid: continue
+                            if other_rid not in temp_active:
+                                ox, oy = other_state.current
+                                if states[other_rid].amr_name in live_poses:
+                                    ox, oy = live_poses[states[other_rid].amr_name][:2]
+                                current_blocked.update(get_route_cells([(ox, oy)], A_STAR_RESOLUTION))
+                        
+                        # 找出機器人當下在路線上的最近點，只檢查「未來的路徑」是否有被擋住
+                        nearest_idx = 0
+                        min_d = float('inf')
+                        for i, pt in enumerate(motion.route):
+                            d = dist((px, py), pt)
+                            if d < min_d:
+                                min_d = d
+                                nearest_idx = i
+                        future_route = [(px, py)] + motion.route[nearest_idx:]
+                        
+                        my_route_cells = get_route_cells(future_route, A_STAR_RESOLUTION)
+                        if my_route_cells.intersection(current_blocked):
+                            should_preempt = True
+                            preempt_reason = "future route blocked by physical robot"
+                            
+                    # 觸發中斷重算
+                    if should_preempt:
+                        print(f"[REPLAN] AMR{rid} preempting mid-flight ({motion.phase}): {preempt_reason}")
+                        terminate_process(motion.proc)
+                        del active[rid]
+                        states[rid].current = (px, py)
 
             for rid in list(active.keys()):
                 motion = active[rid]
@@ -943,6 +1020,17 @@ def main() -> int:
                 owner_map = active_target_owner_map(active)
                 round_plans: list[tuple[int, StageAction, list[tuple[float, float]]]] = []
 
+                proposed_moving: set[int] = set()
+
+                # 只封鎖所有機器人的「當前實體位置」，不再封鎖「未來整段路線」
+                # 消除幻影牆壁，讓機器人可以駛入空曠區域動態禮讓
+                physical_blocked_cells = set()
+                for r_id, r_state in states.items():
+                    ox, oy = r_state.current
+                    if r_state.amr_name in live_poses:
+                        ox, oy = live_poses[r_state.amr_name][:2]
+                    physical_blocked_cells.update(get_route_cells([(ox, oy)], A_STAR_RESOLUTION))
+
                 for rid in (1, 2, 3):
                     if rid in active:
                         continue
@@ -950,37 +1038,74 @@ def main() -> int:
                     state = states[rid]
                     action = build_next_action(
                         state=state,
+                        states=states,
+                        active=active,
                         now=now,
                         resource_locks=resource_locks,
                         active_target_owners=owner_map,
+                        proposed_moving=proposed_moving,
+                        stage_idx=stage_idx,
+                        live_poses=live_poses,
                     )
                     if not action.move:
                         continue
 
-                    route = build_static_route(rid, state.current, action.target)
-                    round_plans.append((rid, action, route))
+                    proposed_moving.add(rid)
 
-                    if action.phase == 'target' and action.stop is not None:
+                    current_blocked = set(physical_blocked_cells)
+                    
+                    # 移除自己的實體位置，讓自己可以順利規劃出發路徑
+                    my_ox, my_oy = state.current
+                    if state.amr_name in live_poses:
+                        my_ox, my_oy = live_poses[state.amr_name][:2]
+                    my_cells = get_route_cells([(my_ox, my_oy)], A_STAR_RESOLUTION)
+                    current_blocked.difference_update(my_cells)
+
+                    # 第一回合 (stage_idx == 0) 去供料區時，把目標與進場點從 A* 障礙物中強制移除
+                    # 避免 A* 把停在那裡的另一台車當成死路而卡住
+                    if stage_idx == 0 and action.stop is not None and action.stop.kind == 'supply':
+                        dest_cells = get_route_cells([action.stop.target, action.stop.approach], A_STAR_RESOLUTION)
+                        current_blocked.difference_update(dest_cells)
+
+                    route = build_smart_astar_route(
+                        base_planner, A_STAR_RESOLUTION, state.current, action.target, current_blocked
+                    )
+
+                    if route is None:
+                        if last_yield_reason.get(rid) != 'blocked by A* path traffic':
+                            print(f'[YIELD] AMR{rid} holds at {state.current}: waiting for clear A* path')
+                            last_yield_reason[rid] = 'blocked by A* path traffic'
+                        proposed_moving.discard(rid)
+                        continue
+
+                    last_yield_reason.pop(rid, None)
+                    # 封鎖新路線的「終點」，避免同回合的其他車規劃疊加在你未來的停車格上
+                    if route:
+                        physical_blocked_cells.update(get_route_cells([route[-1]], A_STAR_RESOLUTION))
+                    
+                    if action.phase in ('approach', 'target') and action.stop is not None:
                         owner_map[action.stop.resource_key] = rid
+                    elif action.phase == 'wait':
+                        owner_map[f"wait_{action.target[0]}_{action.target[1]}"] = rid
+                    
+                    round_plans.append((rid, action, route))
 
                 if round_plans:
                     progressed = True
                     stage_idx += 1
                     print(f'\n===== DISPATCH ROUND {stage_idx} =====')
 
-                    round_routes = {rid: route for rid, _, route in round_plans}
+                    round_routes = {rid: route for rid, _, route in round_plans if route}
                     for rid, action, route in round_plans:
                         if action.stop is not None:
                             print(
                                 f'[MOVE] AMR{rid}: {action.phase} -> {action.stop.resource_key} '
                                 f'target=({action.target[0]:.2f}, {action.target[1]:.2f})'
                             )
-                        print(f'[ROUTE] AMR{rid}: points={len(route)} start={route[0]} end={route[-1]}')
-                        if args.show_waypoints:
-                            print(f'[ROUTE-WP] AMR{rid}: {serialize_waypoints(route)}')
-
-                    if round_routes:
-                        print(f'[ROUTE] overlap-cells: {overlap_summary(round_routes)}')
+                        if route:
+                            print(f'[ROUTE] AMR{rid}: points={len(route)} start={route[0]} end={route[-1]}')
+                            if show_waypoints_arg:
+                                print(f'[ROUTE-WP] AMR{rid}: {serialize_waypoints(route)}')
 
                     for rid, action, route in round_plans:
                         cmd = build_go_to_cmd(
@@ -990,14 +1115,14 @@ def main() -> int:
                             goal=action.target,
                             route=route,
                             stop=action.stop,
-                            stop_pos_tol=args.stop_pos_tol,
-                            stop_yaw_tol_deg=args.stop_yaw_tol_deg,
-                            stop_yaw_settle_sec=args.stop_yaw_settle_sec,
-                            station_yaw_deg=args.station_yaw_deg,
+                            stop_pos_tol=stop_pos_tol_arg,
+                            stop_yaw_tol_deg=stop_yaw_tol_deg_arg,
+                            stop_yaw_settle_sec=stop_yaw_settle_sec_arg,
+                            station_yaw_deg=station_yaw_deg_arg,
                         )
                         print(f"[EXEC] launch robot{rid}: cmd={' '.join(cmd)}")
 
-                        if args.dry_run:
+                        if dry_run_arg:
                             print(f'[OK] robot{rid} reached planned goal (dry-run)')
                             apply_completed_motion(
                                 state=states[rid],
