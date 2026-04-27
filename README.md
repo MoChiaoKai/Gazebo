@@ -7,15 +7,15 @@ First, ensure your Gazebo simulation environment and ROSMASTER X3 nodes are runn
 In the terminal, run `run_amr_schedule_static.py` and specify your schedule file with the `--schedule` parameter:
 
 ```bash
-cd /home/mo/yahboom_ws\
+cd /home/mo/Gazebo\
 bash start_gazebo.py
 python3 run_amr_schedule_static.py --schedule amr_schedule.jsonl
 ```
 
 The system will automatically:
-1. Parse `amr_schedule_1.jsonl`.
+1. Parse `amr_schedule.jsonl`.
 2. Read `temp.world` and build the A* map.
-3. Display dispatch information for each round (DISPATCH ROUND).
+3. Display dispatch information for each round.
 4. Call `go_to_point.py` to start driving the robots.
 
 ## Dependencies
