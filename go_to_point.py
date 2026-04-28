@@ -466,23 +466,23 @@ class GoToPointNode(Node):
         self.cmd_pub = self.create_publisher(Twist, cmd_topic, 10)
         self.create_subscription(Odometry, odom_topic, self.odom_callback, 50)
 
-        self.log_start(robot_id, target_frame, target_x, target_y, target_yaw_deg, cmd_topic, odom_topic)
+        # self.log_start(robot_id, target_frame, target_x, target_y, target_yaw_deg, cmd_topic, odom_topic)
 
-    def log_start(
-        self,
-        robot_id: int,
-        frame_name: str,
-        target_x: float,
-        target_y: float,
-        target_yaw_deg: float | None,
-        cmd_topic: str,
-        odom_topic: str,
-    ):
-        yaw_text = 'none' if target_yaw_deg is None else f'{target_yaw_deg:.1f} deg'
-        self.get_logger().debug(
-            f'start: robot={robot_id}, frame={frame_name}, target=({target_x:.3f}, {target_y:.3f}), '
-            f'target_yaw={yaw_text}, cmd_topic={cmd_topic}, odom_topic={odom_topic}'
-        )
+    # def log_start(
+    #     self,
+    #     robot_id: int,
+    #     frame_name: str,
+    #     target_x: float,
+    #     target_y: float,
+    #     target_yaw_deg: float | None,
+    #     cmd_topic: str,
+    #     odom_topic: str,
+    # ):
+    #     yaw_text = 'none' if target_yaw_deg is None else f'{target_yaw_deg:.1f} deg'
+    #     self.get_logger().debug(
+    #         f'start: robot={robot_id}, frame={frame_name}, target=({target_x:.3f}, {target_y:.3f}), '
+    #         f'target_yaw={yaw_text}, cmd_topic={cmd_topic}, odom_topic={odom_topic}'
+    #     )
 
     def set_target_odom(
         self,
@@ -1733,7 +1733,7 @@ class GoToPointNode(Node):
             elapsed = now - self.task_start_time
             
             self.get_logger().info(
-                f'Robot {self.robot_id} [Time: {elapsed:.1f}s] Position: x={cur_x:.3f}, y={cur_y:.3f}, angle={yaw_deg:.1f}°'
+                f'Robot {self.robot_id} Position: x={cur_x:.3f}, y={cur_y:.3f}, angle={yaw_deg:.1f}°'
             )
 
 

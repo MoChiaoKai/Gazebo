@@ -851,8 +851,7 @@ def main() -> int:
         print(f'[ERROR] failed to parse schedule: {e}', file=sys.stderr)
         return 1
 
-    print(f'[INFO] loaded schedule: {schedule_path}')
-    print('[INFO] route mode: A* dynamic planning with virtual corridors')
+    print(f'[INFO] Schedule: {schedule_path}')
     for rid in (1, 2, 3):
         st = states[rid]
         print(f'[INFO] {st.amr_name}: stops={len(st.stops)}, start={st.current}')
