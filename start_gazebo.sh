@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -eo pipefail
 
-WS="/home/mo/yahboom_ws"
+WS="/home/mo/Gazebo"
 HEADLESS="${1:-False}"
 TELEOP_SPEED="${2:-0.18}"
 TELEOP_TURN="${3:-1.00}"

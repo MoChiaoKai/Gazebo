@@ -1,14 +1,20 @@
+
+## Gazebo ROSMASTER X3 Simulation Project
+
+This project uses Gazebo to simulate the Yahboom ROSMASTER X3 robot, providing a complete ROS 2 Humble environment with automated dispatch, navigation, and teleoperation features. 
+
+---
+
 ## Usage
 
-### 1. Start ROS 2 and Gazebo Environment
-First, ensure your Gazebo simulation environment and ROSMASTER X3 nodes are running, and the corresponding `temp.world` is loaded.
+### 1. Launch ROS 2 and Gazebo Simulation
+Start the Gazebo simulation environment by running the `start_gazebo.sh` script. This will launch Gazebo with the appropriate file and initialize the Yahboom ROSMASTER X3 nodes.
 
 ### 2. Run the Dispatch Main Program
 In the terminal, run `run_amr_schedule_static.py` and specify your schedule file with the `--schedule` parameter:
 
 ```bash
-cd /home/mo/Gazebo\
-bash start_gazebo.py
+cd /home/mo/Gazebo
 python3 run_amr_schedule_static.py --schedule amr_schedule.jsonl
 ```
 
@@ -22,5 +28,5 @@ The system will automatically:
 
 - Python 3.10+
 - ROS 2 Humble
-- Ignition Gazebo
+- Gazebo Fortress
 - Yahboom ROSMASTER related packages (`yahboom_rosmaster_gazebo`)

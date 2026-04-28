@@ -12,7 +12,7 @@ if [[ "$ROBOT_ID" != "1" && "$ROBOT_ID" != "2" && "$ROBOT_ID" != "3" ]]; then
   exit 1
 fi
 
-WS="/home/mo/yahboom_ws"
+WS="/home/mo/Gazebo"
 source /opt/ros/humble/setup.bash
 source "$WS/install/setup.bash"
 
